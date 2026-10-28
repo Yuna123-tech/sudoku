@@ -231,3 +231,11 @@ h3.sub { font-size: .9rem; margin: 14px 0 8px; color: var(--muted); }
   position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--line-thick); color: var(--bg);
   padding: 10px 16px; border-radius: 10px; font-size: .9rem; z-index: 100; box-shadow: var(--shadow);
 }
+.rank-filter { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.rank-filter select {
+  font: inherit; font-size: .88rem; color: var(--text); background: var(--bg);
+  border: 1.5px solid var(--line-thin); border-radius: 10px; padding: 8px 10px;
+}
+.rank-sum { margin: 0 0 8px; }
+.rk { display: inline-block; min-width: 2em; }
+.list-item.latest { box-shadow: inset 0 0 0 1.5px var(--accent); }

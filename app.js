@@ -352,6 +352,25 @@
     else persist();
   }
 
+  /* 힌트 없이 완료한 기록을 빠른 순으로 (개인 랭킹) */
+  function rankList(variant, difficulty) {
+    return records.completed
+      .filter((r) => r.variant === variant && r.difficulty === difficulty && !r.hints)
+      .sort((a, b) => a.time - b.time || a.date - b.date);
+  }
+
+  function rankHtml(variant, difficulty) {
+    const list = rankList(variant, difficulty);
+    if (!list.length) return '<p class="empty">아직 이 종류·난이도에서 힌트 없이 완료한 기록이 없어요.</p>';
+    const avg = Math.round(list.reduce((t, r) => t + r.time, 0) / list.length);
+    const latest = Math.max(...list.map((r) => r.date));
+    const medals = ['🥇', '🥈', '🥉'];
+    return `<p class="hint-text rank-sum">완료 ${list.length}회 · 최고 ${fmt(list[0].time)} · 평균 ${fmt(avg)}</p>
+      <div class="list">${list.slice(0, 10).map((r, i) => `<div class="list-item${r.date === latest ? ' latest' : ''}">
+        <span><b class="rk">${medals[i] || i + 1}</b>${fmt(r.time)}${r.date === latest ? ' <small>· 최근</small>' : ''}</span>
+        <small>${new Date(r.date).toLocaleDateString('ko-KR')} · 실수 ${r.mistakes}${r.daily ? ' · 📅' : ''}</small></div>`).join('')}</div>`;
+  }
+
   function win() {
     game.won = true;
     const p = game.puzzle;
@@ -359,11 +378,17 @@
     const prevBest = records.best[ck];
     const isBest = !game.hints && (!prevBest || game.elapsed < prevBest);
     if (isBest) records.best[ck] = game.elapsed;
-    records.completed.unshift({
+    const entry = {
       variant: p.variant, difficulty: p.difficulty, time: game.elapsed,
       mistakes: game.mistakes, hints: game.hints, daily: game.daily, date: Date.now(),
-    });
+    };
+    records.completed.unshift(entry);
     records.completed = records.completed.slice(0, 500);
+    const ranked = rankList(p.variant, p.difficulty);
+    const rank = ranked.indexOf(entry) + 1;
+    const rankMsg = game.hints
+      ? '힌트를 쓴 게임은 순위·최고 기록에 반영되지 않아요'
+      : `${rank === 1 && ranked.length > 1 ? '🏆 새 최고 기록! ' : ''}내 기록 중 <b>${rank}등</b> (총 ${ranked.length}회)${rank > 1 ? ` · 최고 ${fmt(ranked[0].time)}` : ''}`;
     if (game.daily && !records.daily[game.daily]) records.daily[game.daily] = game.elapsed;
     saveRecords();
     delete saves[game.key];
@@ -374,7 +399,7 @@
       <h3>🎉 완성!</h3>
       <p>${variantOf(p.variant).name} · ${diffOf(p.difficulty).name}${game.daily ? ' · 오늘의 퍼즐' : ''}</p>
       <p>시간 <b>${fmt(game.elapsed)}</b> · 실수 ${game.mistakes} · 힌트 ${game.hints}<br>
-      ${isBest ? '🏆 새 최고 기록!' : prevBest ? `최고 기록 ${fmt(prevBest)}` : game.hints ? '힌트를 쓴 게임은 최고 기록에 반영되지 않아요' : ''}</p>
+      ${rankMsg}</p>
       <div class="actions"><button class="btn primary" data-act="new">새 게임</button><button class="btn" data-act="records">기록 보기</button></div>`);
   }
 
@@ -460,6 +485,12 @@
         <div class="stat"><b>${fmt(totalTime)}</b><span>총 플레이 시간</span></div>
         <div class="stat"><b>${dailyCount}</b><span>오늘의 퍼즐 완료</span></div>
       </div>
+      <h3 class="sub">🥇 내 랭킹 (힌트 없이 완료, 상위 10개)</h3>
+      <div class="rank-filter">
+        <select id="rk-v">${VARIANTS.map((v) => `<option value="${v.id}"${v.id === settings.variant ? ' selected' : ''}>${v.name}</option>`).join('')}</select>
+        <select id="rk-d">${DIFFICULTIES.map((d) => `<option value="${d.id}"${d.id === settings.difficulty ? ' selected' : ''}>${d.name}</option>`).join('')}</select>
+      </div>
+      <div id="rk-list">${rankHtml(settings.variant, settings.difficulty)}</div>
       <h3 class="sub">🏆 최고 기록 (힌트 없이 완료)</h3>
       <div class="tbl-wrap"><table>${head}${rows}</table></div>
       <h3 class="sub">⏯ 이어하기</h3>
@@ -582,6 +613,10 @@
     else if (act === 'reset') resetData();
   });
   $('dlg-body').addEventListener('change', (e) => {
+    if (e.target.id === 'rk-v' || e.target.id === 'rk-d') {
+      $('rk-list').innerHTML = rankHtml($('rk-v').value, $('rk-d').value);
+      return;
+    }
     const k = e.target.dataset.set;
     if (!k) return;
     settings[k] = e.target.checked;
