@@ -267,6 +267,11 @@
       const has = saves[comboKey(x.id, settings.difficulty)];
       return `<button class="chip ${x.id === settings.variant && !(game && game.daily) ? 'active' : ''}" data-v="${x.id}">${vName(x.id)}${has ? `<span class="dot" title="${t('inProgress')}"></span>` : ''}</button>`;
     }).join('');
+    // 좁은 화면용 선택 상자
+    $('pick-v').innerHTML = VARIANTS.map((x) =>
+      `<option value="${x.id}"${x.id === settings.variant ? ' selected' : ''}>${vName(x.id)}${saves[comboKey(x.id, settings.difficulty)] ? ' •' : ''}</option>`).join('');
+    $('pick-d').innerHTML = DIFFICULTIES.map((x) =>
+      `<option value="${x.id}"${x.id === settings.difficulty ? ' selected' : ''}>${dName(x.id)}</option>`).join('');
     $('diffs').innerHTML = DIFFICULTIES.map((x) =>
       `<button class="chip ${x.id === settings.difficulty && !(game && game.daily) ? 'active' : ''}" data-d="${x.id}">${dName(x.id)}</button>`).join('');
   }
@@ -576,7 +581,9 @@
     const opt = (k) => `<label class="setting"><span>${t(`set.${k}`, n)}<small>${t(`set.${k}Sub`, n)}</small></span><input type="checkbox" data-set="${k}" ${settings[k] ? 'checked' : ''}></label>`;
     const langRow = `<label class="setting"><span>${t('set.lang')}<small>${t('set.langSub')}</small></span>
       <select id="set-lang" class="lang-select">${Object.keys(I18N).map((l) => `<option value="${l}"${l === settings.lang ? ' selected' : ''}>${I18N[l].langName}</option>`).join('')}</select></label>`;
-    openDialog(t('settings'), langRow + ['mistakeLimit', 'showMistakes', 'highlightSame', 'highlightPeers', 'autoClean'].map(opt).join(''));
+    const themeRow = `<label class="setting"><span>${t('set.theme')}<small>${t('set.themeSub')}</small></span>
+      <select id="set-theme" class="lang-select">${['auto', 'light', 'dark'].map((x) => `<option value="${x}"${x === settings.theme ? ' selected' : ''}>${t(`theme.${x}`)}</option>`).join('')}</select></label>`;
+    openDialog(t('settings'), langRow + themeRow + ['mistakeLimit', 'showMistakes', 'highlightSame', 'highlightPeers', 'autoClean'].map(opt).join(''));
   }
 
   function exportData() {
@@ -624,7 +631,6 @@
   function applyTheme() {
     if (settings.theme === 'auto') document.documentElement.removeAttribute('data-theme');
     else document.documentElement.dataset.theme = settings.theme;
-    $('btn-theme').textContent = { auto: '🌓', light: '☀️', dark: '🌙' }[settings.theme];
   }
 
   /* ---------- 이벤트 ---------- */
@@ -645,11 +651,14 @@
   $('btn-records').onclick = showRecords;
   $('btn-settings').onclick = showSettings;
   $('btn-lang').onclick = () => setLang(settings.lang === 'ko' ? 'en' : 'ko');
-  $('btn-theme').onclick = () => {
-    settings.theme = { auto: 'light', light: 'dark', dark: 'auto' }[settings.theme];
-    saveSettings();
-    applyTheme();
+  $('btn-new-m').onclick = newGame;
+  $('btn-daily-top').onclick = daily;
+  $('btn-rule').onclick = () => {
+    const v = game ? game.puzzle.variant : settings.variant;
+    openDialog(`${t('rules')} · ${vName(v)}`, `<p class="rule">${vDesc(v)}</p>`);
   };
+  $('pick-v').onchange = (e) => choose(e.target.value, settings.difficulty);
+  $('pick-d').onchange = (e) => choose(settings.variant, e.target.value);
   $('variants').addEventListener('click', (e) => {
     const b = e.target.closest('[data-v]');
     if (b) choose(b.dataset.v, settings.difficulty);
@@ -683,6 +692,12 @@
     if (e.target.id === 'set-lang') {
       setLang(e.target.value);
       showSettings();
+      return;
+    }
+    if (e.target.id === 'set-theme') {
+      settings.theme = e.target.value;
+      saveSettings();
+      applyTheme();
       return;
     }
     if (e.target.id === 'rk-v' || e.target.id === 'rk-d') {

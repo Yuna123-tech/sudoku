@@ -3,7 +3,10 @@ window.I18N = {
   ko: {
     appName: '스도쿠 놀이터',
     langName: '한국어',
-    'top.install': '앱 설치', 'top.records': '기록', 'top.settings': '설정', 'top.theme': '테마 전환', 'top.lang': '언어 / Language',
+    'top.install': '앱 설치', 'top.records': '기록', 'top.settings': '설정', 'top.theme': '테마 전환', 'top.lang': '언어 / Language', 'top.daily': '오늘의 퍼즐',
+    'pick.new': '새 게임', 'pick.rule': '규칙 보기', rules: '규칙',
+    'set.theme': '화면 테마', 'set.themeSub': '밝게 / 어둡게 / 기기 설정 따르기',
+    'theme.auto': '기기 설정', 'theme.light': '밝게', 'theme.dark': '어둡게',
     'st.mistakes': '실수', 'st.hints': '힌트', 'st.time': '시간', 'st.pause': '일시정지', 'board': '스도쿠 판',
     'tool.undo': '실행취소', 'tool.erase': '지우기', 'tool.notes': '메모', 'tool.autoNotes': '자동 메모', 'tool.hint': '힌트',
     on: '켬', off: '끔',
@@ -58,7 +61,10 @@ window.I18N = {
   en: {
     appName: 'Sudoku Playground',
     langName: 'English',
-    'top.install': 'Install', 'top.records': 'Records', 'top.settings': 'Settings', 'top.theme': 'Toggle theme', 'top.lang': 'Language / 언어',
+    'top.install': 'Install', 'top.records': 'Records', 'top.settings': 'Settings', 'top.theme': 'Toggle theme', 'top.lang': 'Language / 언어', 'top.daily': 'Daily puzzle',
+    'pick.new': 'New', 'pick.rule': 'Show rules', rules: 'Rules',
+    'set.theme': 'Theme', 'set.themeSub': 'Light / Dark / Follow device',
+    'theme.auto': 'Device', 'theme.light': 'Light', 'theme.dark': 'Dark',
     'st.mistakes': 'Mistakes', 'st.hints': 'Hints', 'st.time': 'Time', 'st.pause': 'Pause', 'board': 'Sudoku board',
     'tool.undo': 'Undo', 'tool.erase': 'Erase', 'tool.notes': 'Notes', 'tool.autoNotes': 'Auto notes', 'tool.hint': 'Hint',
     on: 'On', off: 'Off',

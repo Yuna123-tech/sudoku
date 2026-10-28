@@ -17,20 +17,26 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><span class="logo">9</span><span data-i18n="appName">스도쿠 놀이터</span></div>
+    <div class="brand"><span class="logo">9</span><span class="brand-text" data-i18n="appName">스도쿠 놀이터</span></div>
     <nav class="top-actions">
       <button class="icon-btn hidden" id="btn-install" data-i18n-title="top.install">📲<span class="lbl" data-i18n="top.install">앱 설치</span></button>
+      <button class="icon-btn" id="btn-daily-top" data-i18n-title="top.daily">📅<span class="lbl" data-i18n="top.daily">오늘의 퍼즐</span></button>
       <button class="icon-btn" id="btn-records" data-i18n-title="top.records">📊<span class="lbl" data-i18n="top.records">기록</span></button>
       <button class="icon-btn" id="btn-settings" data-i18n-title="top.settings">⚙️<span class="lbl" data-i18n="top.settings">설정</span></button>
       <button class="icon-btn" id="btn-lang" data-i18n-title="top.lang">🌐<span class="lbl" id="lang-label">English</span></button>
-      <button class="icon-btn" id="btn-theme" data-i18n-title="top.theme">🌓</button>
     </nav>
   </header>
 
   <main class="layout">
     <section class="play">
+      <div class="picker">
+        <select id="pick-v" data-i18n-aria="side.variants"></select>
+        <select id="pick-d" data-i18n-aria="side.difficulty"></select>
+        <button class="btn primary" id="btn-new-m" data-i18n="pick.new">새 게임</button>
+      </div>
+
       <div class="status">
-        <div class="status-title"><strong id="st-variant">클래식</strong> · <span id="st-diff">보통</span><span id="st-daily" class="badge hidden" data-i18n="daily">오늘의 퍼즐</span></div>
+        <div class="status-title"><strong id="st-variant">클래식</strong> · <span id="st-diff">보통</span><button class="rule-btn" id="btn-rule" data-i18n-title="pick.rule">?</button><span id="st-daily" class="badge hidden" data-i18n="daily">오늘의 퍼즐</span></div>
         <div class="status-meta">
           <span data-i18n-title="st.mistakes">❌ <b id="st-mistakes">0</b></span>
           <span data-i18n-title="st.hints">💡 <b id="st-hints">0</b></span>
@@ -40,23 +46,26 @@
       </div>
 
       <div class="board-wrap">
-        <div class="board" id="board" tabindex="0" data-i18n-aria="board">
-          <div class="grid" id="grid"></div>
-        </div>
-        <div class="overlay hidden" id="overlay">
-          <div class="overlay-box" id="overlay-content"></div>
+        <div class="board-box">
+          <div class="board" id="board" tabindex="0" data-i18n-aria="board">
+            <div class="grid" id="grid"></div>
+          </div>
+          <div class="overlay hidden" id="overlay">
+            <div class="overlay-box" id="overlay-content"></div>
+          </div>
         </div>
       </div>
 
-      <div class="tools">
-        <button class="tool" id="btn-undo"><span class="ti">↶</span><span data-i18n="tool.undo">실행취소</span></button>
-        <button class="tool" id="btn-erase"><span class="ti">⌫</span><span data-i18n="tool.erase">지우기</span></button>
-        <button class="tool" id="btn-notes"><span class="ti">✎</span><span data-i18n="tool.notes">메모</span> <em id="notes-state">끔</em></button>
-        <button class="tool" id="btn-autonotes"><span class="ti">✦</span><span data-i18n="tool.autoNotes">자동 메모</span></button>
-        <button class="tool" id="btn-hint"><span class="ti">💡</span><span data-i18n="tool.hint">힌트</span></button>
+      <div class="controls">
+        <div class="tools">
+          <button class="tool" id="btn-undo"><span class="ti">↶</span><span data-i18n="tool.undo">실행취소</span></button>
+          <button class="tool" id="btn-erase"><span class="ti">⌫</span><span data-i18n="tool.erase">지우기</span></button>
+          <button class="tool" id="btn-notes"><span class="ti">✎</span><span data-i18n="tool.notes">메모</span><em id="notes-state">끔</em></button>
+          <button class="tool" id="btn-autonotes"><span class="ti">✦</span><span data-i18n="tool.autoNotes">자동 메모</span></button>
+          <button class="tool" id="btn-hint"><span class="ti">💡</span><span data-i18n="tool.hint">힌트</span></button>
+        </div>
+        <div class="numpad" id="numpad"></div>
       </div>
-
-      <div class="numpad" id="numpad"></div>
     </section>
 
     <aside class="side">
@@ -76,11 +85,7 @@
       </div>
       <div class="card keys">
         <h2 data-i18n="side.keys">단축키</h2>
-        <ul data-i18n-html="side.keysHtml">
-          <li><kbd>1</kbd>–<kbd>9</kbd> 숫자 입력 · <kbd>Del</kbd> 지우기</li>
-          <li><kbd>←↑→↓</kbd> 이동 · <kbd>N</kbd> 메모 전환</li>
-          <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> 실행취소 · <kbd>H</kbd> 힌트 · <kbd>P</kbd> 일시정지</li>
-        </ul>
+        <ul data-i18n-html="side.keysHtml"></ul>
       </div>
     </aside>
   </main>
