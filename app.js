@@ -16,6 +16,7 @@
 
   const settings = Object.assign({
     variant: 'classic', difficulty: 'medium', theme: 'auto', lastKey: null,
+    lang: (navigator.language || '').toLowerCase().startsWith('ko') ? 'ko' : 'en',
     mistakeLimit: true, showMistakes: true, highlightSame: true, highlightPeers: true, autoClean: true,
   }, store.get(KEYS.settings, {}));
   let saves = store.get(KEYS.saves, {});
@@ -39,8 +40,35 @@
   let game = null, ctx = null, sel = 40, notesMode = false, paused = false, generating = false;
   let cells = [];
 
-  const variantOf = (id) => VARIANTS.find((v) => v.id === id) || VARIANTS[0];
-  const diffOf = (id) => DIFFICULTIES.find((d) => d.id === id) || DIFFICULTIES[2];
+  /* ---------- 언어 ---------- */
+  const t = (k, params) => {
+    const dict = I18N[settings.lang] || I18N.ko;
+    let str = dict[k] ?? I18N.ko[k] ?? k;
+    if (params) for (const [x, y] of Object.entries(params)) str = str.split(`{${x}}`).join(y);
+    return str;
+  };
+  const locale = () => (settings.lang === 'en' ? 'en-US' : 'ko-KR');
+  const vName = (id) => t(`v.${id}`), vShort = (id) => t(`v.${id}.short`), vDesc = (id) => t(`v.${id}.desc`);
+  const dName = (id) => t(`d.${id}`);
+
+  function applyLang() {
+    document.documentElement.lang = settings.lang;
+    document.title = t('appName');
+    document.querySelectorAll('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n)));
+    document.querySelectorAll('[data-i18n-html]').forEach((el) => (el.innerHTML = t(el.dataset.i18nHtml)));
+    document.querySelectorAll('[data-i18n-title]').forEach((el) => (el.title = t(el.dataset.i18nTitle)));
+    document.querySelectorAll('[data-i18n-aria]').forEach((el) => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
+    $('lang-label').textContent = settings.lang === 'ko' ? 'English' : '한국어';
+  }
+
+  function setLang(lang) {
+    settings.lang = lang;
+    saveSettings();
+    applyLang();
+    renderSide();
+    update();
+    if (overlayFn && !$('overlay').classList.contains('hidden')) showOverlay(overlayFn);
+  }
   const comboKey = (v, d) => `${v}-${d}`;
   const fmt = (s) => {
     const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60;
@@ -79,13 +107,13 @@
 
   async function startNew(variant, difficulty, opts = {}) {
     generating = true;
-    showOverlay(`<div class="spinner"></div><p>퍼즐을 만드는 중…</p>`);
+    showOverlay(() => `<div class="spinner"></div><p>${t('generating')}</p>`);
     let puzzle;
     try {
       puzzle = await requestPuzzle(variant, difficulty, opts.seed);
     } catch (err) {
       generating = false;
-      showOverlay(`<h3>앗!</h3><p>퍼즐 생성에 실패했어요.</p><button class="btn primary" data-act="retry">다시 시도</button>`);
+      showOverlay(() => `<h3>${t('oops')}</h3><p>${t('genFail')}</p><button class="btn primary" data-act="retry">${t('retry')}</button>`);
       return;
     }
     const key = opts.daily ? `daily-${opts.daily}` : comboKey(variant, difficulty);
@@ -224,27 +252,33 @@
     $('st-hints').textContent = game.hints;
     $('st-time').textContent = fmt(game.elapsed);
     $('btn-notes').classList.toggle('on', notesMode);
-    $('notes-state').textContent = notesMode ? '켬' : '끔';
+    $('notes-state').textContent = notesMode ? t('on') : t('off');
     $('numpad').classList.toggle('notes-mode', notesMode);
   }
 
   function renderSide() {
     const v = game ? game.puzzle.variant : settings.variant;
     const d = game ? game.puzzle.difficulty : settings.difficulty;
-    $('st-variant').textContent = variantOf(v).name;
-    $('st-diff').textContent = diffOf(d).name;
+    $('st-variant').textContent = vName(v);
+    $('st-diff').textContent = dName(d);
     $('st-daily').classList.toggle('hidden', !(game && game.daily));
-    $('rule').textContent = variantOf(v).desc;
+    $('rule').textContent = vDesc(v);
     $('variants').innerHTML = VARIANTS.map((x) => {
       const has = saves[comboKey(x.id, settings.difficulty)];
-      return `<button class="chip ${x.id === settings.variant && !(game && game.daily) ? 'active' : ''}" data-v="${x.id}">${x.name}${has ? '<span class="dot" title="진행 중"></span>' : ''}</button>`;
+      return `<button class="chip ${x.id === settings.variant && !(game && game.daily) ? 'active' : ''}" data-v="${x.id}">${vName(x.id)}${has ? `<span class="dot" title="${t('inProgress')}"></span>` : ''}</button>`;
     }).join('');
     $('diffs').innerHTML = DIFFICULTIES.map((x) =>
-      `<button class="chip ${x.id === settings.difficulty && !(game && game.daily) ? 'active' : ''}" data-d="${x.id}">${x.name}</button>`).join('');
+      `<button class="chip ${x.id === settings.difficulty && !(game && game.daily) ? 'active' : ''}" data-d="${x.id}">${dName(x.id)}</button>`).join('');
   }
 
   /* ---------- 오버레이 / 토스트 ---------- */
-  function showOverlay(html) { $('overlay-content').innerHTML = html; $('overlay').classList.remove('hidden'); }
+  /* 내용을 함수로 받아 두었다가 언어를 바꾸면 다시 그림 */
+  let overlayFn = null;
+  function showOverlay(fn) {
+    overlayFn = fn;
+    $('overlay-content').innerHTML = fn();
+    $('overlay').classList.remove('hidden');
+  }
   function hideOverlay() { $('overlay').classList.add('hidden'); }
   let toastTimer;
   function toast(msg) {
@@ -303,10 +337,10 @@
   }
 
   function showGameOver() {
-    showOverlay(`
-      <h3>💥 게임 오버</h3>
-      <p>${MAX_MISTAKES}번 틀려서 이 판이 끝났어요.<br>시간 ${fmt(game.elapsed)}</p>
-      <div class="actions"><button class="btn primary" data-act="restart">같은 퍼즐 다시하기</button><button class="btn" data-act="new">새 퍼즐</button></div>`);
+    showOverlay(() => `
+      <h3>${t('gameOver')}</h3>
+      <p>${t('gameOverMsg', { n: MAX_MISTAKES })}<br>${t('time', { t: fmt(game.elapsed) })}</p>
+      <div class="actions"><button class="btn primary" data-act="restart">${t('restartSame')}</button><button class="btn" data-act="new">${t('newPuzzle')}</button></div>`);
   }
 
   function restart() {
@@ -332,7 +366,7 @@
   function undo() {
     if (!canPlay()) return;
     const h = game.history.pop();
-    if (!h) return toast('되돌릴 수 있는 기록이 없어요');
+    if (!h) return toast(t('noUndo'));
     game.values = h.v;
     game.notes = h.n;
     afterMove();
@@ -349,7 +383,7 @@
     pushHistory();
     for (let i = 0; i < 81; i++) game.notes[i] = game.values[i] ? 0 : candidates(i);
     afterMove();
-    toast('가능한 후보를 모두 메모했어요');
+    toast(t('autoNotesDone'));
   }
 
   function hint() {
@@ -392,14 +426,14 @@
 
   function rankHtml(variant, difficulty) {
     const list = rankList(variant, difficulty);
-    if (!list.length) return '<p class="empty">아직 이 종류·난이도에서 힌트 없이 완료한 기록이 없어요.</p>';
+    if (!list.length) return `<p class="empty">${t('rankEmpty')}</p>`;
     const avg = Math.round(list.reduce((t, r) => t + r.time, 0) / list.length);
     const latest = Math.max(...list.map((r) => r.date));
     const medals = ['🥇', '🥈', '🥉'];
-    return `<p class="hint-text rank-sum">완료 ${list.length}회 · 최고 ${fmt(list[0].time)} · 평균 ${fmt(avg)}</p>
+    return `<p class="hint-text rank-sum">${t('rankSum', { n: list.length, best: fmt(list[0].time), avg: fmt(avg) })}</p>
       <div class="list">${list.slice(0, 10).map((r, i) => `<div class="list-item${r.date === latest ? ' latest' : ''}">
-        <span><b class="rk">${medals[i] || i + 1}</b>${fmt(r.time)}${r.date === latest ? ' <small>· 최근</small>' : ''}</span>
-        <small>${new Date(r.date).toLocaleDateString('ko-KR')} · 실수 ${r.mistakes}${r.daily ? ' · 📅' : ''}</small></div>`).join('')}</div>`;
+        <span><b class="rk">${medals[i] || i + 1}</b>${fmt(r.time)}${r.date === latest ? ` <small>· ${t('latest')}</small>` : ''}</span>
+        <small>${new Date(r.date).toLocaleDateString(locale())} · ${t('mistakesN', { n: r.mistakes })}${r.daily ? ' · 📅' : ''}</small></div>`).join('')}</div>`;
   }
 
   function win() {
@@ -417,21 +451,22 @@
     records.completed = records.completed.slice(0, 500);
     const ranked = rankList(p.variant, p.difficulty);
     const rank = ranked.indexOf(entry) + 1;
-    const rankMsg = game.hints
-      ? '힌트를 쓴 게임은 순위·최고 기록에 반영되지 않아요'
-      : `${rank === 1 && ranked.length > 1 ? '🏆 새 최고 기록! ' : ''}내 기록 중 <b>${rank}등</b> (총 ${ranked.length}회)${rank > 1 ? ` · 최고 ${fmt(ranked[0].time)}` : ''}`;
+    const hints = game.hints, mistakes = game.mistakes, elapsed = game.elapsed, isDaily = game.daily;
+    const rankMsg = () => (hints
+      ? t('hintNoRank')
+      : `${rank === 1 && ranked.length > 1 ? t('newBest') : ''}${t('rankMsg', { rank, n: ranked.length })}${rank > 1 ? ` · ${t('bestT', { t: fmt(ranked[0].time) })}` : ''}`);
     if (game.daily && !records.daily[game.daily]) records.daily[game.daily] = game.elapsed;
     saveRecords();
     delete saves[game.key];
     store.set(KEYS.saves, saves);
     renderSide();
     update();
-    showOverlay(`
-      <h3>🎉 완성!</h3>
-      <p>${variantOf(p.variant).name} · ${diffOf(p.difficulty).name}${game.daily ? ' · 오늘의 퍼즐' : ''}</p>
-      <p>시간 <b>${fmt(game.elapsed)}</b> · 실수 ${game.mistakes} · 힌트 ${game.hints}<br>
-      ${rankMsg}</p>
-      <div class="actions"><button class="btn primary" data-act="new">새 게임</button><button class="btn" data-act="records">기록 보기</button></div>`);
+    showOverlay(() => `
+      <h3>${t('solved')}</h3>
+      <p>${vName(p.variant)} · ${dName(p.difficulty)}${isDaily ? ` · ${t('daily')}` : ''}</p>
+      <p>${t('resultLine', { t: fmt(elapsed), m: mistakes, h: hints })}<br>
+      ${rankMsg()}</p>
+      <div class="actions"><button class="btn primary" data-act="new">${t('newGame')}</button><button class="btn" data-act="records">${t('viewRecords')}</button></div>`);
   }
 
   function togglePause(force) {
@@ -440,7 +475,7 @@
     $('btn-pause').textContent = paused ? '▶' : '⏸';
     if (paused) {
       persist();
-      showOverlay(`<h3>일시정지</h3><p>${fmt(game.elapsed)}</p><button class="btn primary" data-act="resume">계속하기</button>`);
+      showOverlay(() => `<h3>${t('paused')}</h3><p>${fmt(game.elapsed)}</p><button class="btn primary" data-act="resume">${t('resume')}</button>`);
     } else hideOverlay();
   }
 
@@ -463,7 +498,7 @@
 
   function newGame() {
     const inProgress = game && !game.won && !game.daily && game.history.length > 0;
-    if (inProgress && !confirm('진행 중인 게임을 버리고 새 퍼즐을 시작할까요?')) return;
+    if (inProgress && !confirm(t('confirmNew'))) return;
     if (game && !game.daily) delete saves[game.key];
     startNew(settings.variant, settings.difficulty).then(renderSide);
   }
@@ -477,7 +512,7 @@
     const n = +ds.replace(/-/g, '');
     const dayIndex = Math.floor(Date.UTC(+ds.slice(0, 4), +ds.slice(5, 7) - 1, +ds.slice(8)) / 86400000);
     const variant = VARIANTS[dayIndex % VARIANTS.length].id;
-    if (records.daily[ds]) toast(`오늘의 퍼즐은 이미 완료했어요 (${fmt(records.daily[ds])}) · 다시 플레이`);
+    if (records.daily[ds]) toast(t('dailyDone', { t: fmt(records.daily[ds]) }));
     startNew(variant, 'medium', { seed: n, daily: ds }).then(renderSide);
   }
 
@@ -493,8 +528,8 @@
     const done = records.completed;
     const totalTime = done.reduce((t, r) => t + r.time, 0);
     const dailyCount = Object.keys(records.daily).length;
-    const head = `<tr><th>종류</th>${DIFFICULTIES.map((d) => `<th>${d.name}</th>`).join('')}</tr>`;
-    const rows = VARIANTS.map((v) => `<tr><td>${v.short}</td>${DIFFICULTIES.map((d) => {
+    const head = `<tr><th>${t('type')}</th>${DIFFICULTIES.map((d) => `<th>${dName(d.id)}</th>`).join('')}</tr>`;
+    const rows = VARIANTS.map((v) => `<tr><td>${vShort(v.id)}</td>${DIFFICULTIES.map((d) => {
       const b = records.best[comboKey(v.id, d.id)];
       return `<td>${b ? fmt(b) : '–'}</td>`;
     }).join('')}</tr>`).join('');
@@ -504,47 +539,44 @@
       const filled = s.values.filter((v, i) => v && !p.givens[i]).length;
       const pct = empty ? Math.round((filled / empty) * 100) : 0;
       return `<button type="button" class="list-item" data-resume="${s.key}">
-        <span>${s.daily ? '📅 ' : ''}${variantOf(p.variant).name} · ${diffOf(p.difficulty).name}<br><small>${fmt(s.elapsed)} · ${new Date(s.updatedAt).toLocaleString('ko-KR')}</small></span>
+        <span>${s.daily ? '📅 ' : ''}${vName(p.variant)} · ${dName(p.difficulty)}<br><small>${fmt(s.elapsed)} · ${new Date(s.updatedAt).toLocaleString(locale())}</small></span>
         <span class="progress"><i style="width:${pct}%"></i></span></button>`;
     }).join('');
     const recent = done.slice(0, 20).map((r) => `<div class="list-item">
-      <span>${r.daily ? '📅 ' : ''}${variantOf(r.variant).name} · ${diffOf(r.difficulty).name}<br><small>${new Date(r.date).toLocaleString('ko-KR')}</small></span>
-      <span>${fmt(r.time)}<br><small>실수 ${r.mistakes} · 힌트 ${r.hints}</small></span></div>`).join('');
-    openDialog('게임 기록', `
+      <span>${r.daily ? '📅 ' : ''}${vName(r.variant)} · ${dName(r.difficulty)}<br><small>${new Date(r.date).toLocaleString(locale())}</small></span>
+      <span>${fmt(r.time)}<br><small>${t('mistakesN', { n: r.mistakes })} · ${t('hintsN', { n: r.hints })}</small></span></div>`).join('');
+    openDialog(t('records'), `
       <div class="stat-row">
-        <div class="stat"><b>${done.length}</b><span>완료한 퍼즐</span></div>
-        <div class="stat"><b>${fmt(totalTime)}</b><span>총 플레이 시간</span></div>
-        <div class="stat"><b>${dailyCount}</b><span>오늘의 퍼즐 완료</span></div>
+        <div class="stat"><b>${done.length}</b><span>${t('statDone')}</span></div>
+        <div class="stat"><b>${fmt(totalTime)}</b><span>${t('statTime')}</span></div>
+        <div class="stat"><b>${dailyCount}</b><span>${t('statDaily')}</span></div>
       </div>
-      <h3 class="sub">🥇 내 랭킹 (힌트 없이 완료, 상위 10개)</h3>
+      <h3 class="sub">${t('myRank')}</h3>
       <div class="rank-filter">
-        <select id="rk-v">${VARIANTS.map((v) => `<option value="${v.id}"${v.id === settings.variant ? ' selected' : ''}>${v.name}</option>`).join('')}</select>
-        <select id="rk-d">${DIFFICULTIES.map((d) => `<option value="${d.id}"${d.id === settings.difficulty ? ' selected' : ''}>${d.name}</option>`).join('')}</select>
+        <select id="rk-v">${VARIANTS.map((v) => `<option value="${v.id}"${v.id === settings.variant ? ' selected' : ''}>${vName(v.id)}</option>`).join('')}</select>
+        <select id="rk-d">${DIFFICULTIES.map((d) => `<option value="${d.id}"${d.id === settings.difficulty ? ' selected' : ''}>${dName(d.id)}</option>`).join('')}</select>
       </div>
       <div id="rk-list">${rankHtml(settings.variant, settings.difficulty)}</div>
-      <h3 class="sub">🏆 최고 기록 (힌트 없이 완료)</h3>
+      <h3 class="sub">${t('bestTable')}</h3>
       <div class="tbl-wrap"><table>${head}${rows}</table></div>
-      <h3 class="sub">⏯ 이어하기</h3>
-      <div class="list">${prog || '<p class="empty">진행 중인 게임이 없어요.</p>'}</div>
-      <h3 class="sub">🕘 최근 완료</h3>
-      <div class="list">${recent || '<p class="empty">아직 완료한 퍼즐이 없어요.</p>'}</div>
-      <p class="hint-text">모든 기록은 이 기기의 브라우저(localStorage)에만 저장됩니다. 다른 기기로 옮기려면 내보내기/가져오기를 사용하세요.</p>
+      <h3 class="sub">${t('continue')}</h3>
+      <div class="list">${prog || `<p class="empty">${t('noProgress')}</p>`}</div>
+      <h3 class="sub">${t('recentDone')}</h3>
+      <div class="list">${recent || `<p class="empty">${t('noDone')}</p>`}</div>
+      <p class="hint-text">${t('storageNote')}</p>
       <div class="btn-row">
-        <button type="button" class="btn" data-act="export">⬇ 내보내기</button>
-        <button type="button" class="btn" data-act="import">⬆ 가져오기</button>
-        <button type="button" class="btn danger" data-act="reset">기록 초기화</button>
+        <button type="button" class="btn" data-act="export">${t('export')}</button>
+        <button type="button" class="btn" data-act="import">${t('import')}</button>
+        <button type="button" class="btn danger" data-act="reset">${t('reset')}</button>
       </div>`);
   }
 
   function showSettings() {
-    const opt = (k, label, sub) => `<label class="setting"><span>${label}<small>${sub}</small></span><input type="checkbox" data-set="${k}" ${settings[k] ? 'checked' : ''}></label>`;
-    openDialog('설정', [
-      opt('mistakeLimit', `실수 ${MAX_MISTAKES}번 제한`, `${MAX_MISTAKES}번 틀리면 그 판이 끝나고 다시 시작`),
-      opt('showMistakes', '오답 표시', '정답과 다른 숫자를 빨간색으로 표시'),
-      opt('highlightSame', '같은 숫자 강조', '선택한 칸과 같은 숫자를 강조'),
-      opt('highlightPeers', '관련 칸 강조', '같은 행·열·영역의 칸을 강조'),
-      opt('autoClean', '메모 자동 정리', '숫자를 넣으면 관련 칸의 메모에서 해당 숫자 삭제'),
-    ].join(''));
+    const n = { n: MAX_MISTAKES };
+    const opt = (k) => `<label class="setting"><span>${t(`set.${k}`, n)}<small>${t(`set.${k}Sub`, n)}</small></span><input type="checkbox" data-set="${k}" ${settings[k] ? 'checked' : ''}></label>`;
+    const langRow = `<label class="setting"><span>${t('set.lang')}<small>${t('set.langSub')}</small></span>
+      <select id="set-lang" class="lang-select">${Object.keys(I18N).map((l) => `<option value="${l}"${l === settings.lang ? ' selected' : ''}>${I18N[l].langName}</option>`).join('')}</select></label>`;
+    openDialog(t('settings'), langRow + ['mistakeLimit', 'showMistakes', 'highlightSame', 'highlightPeers', 'autoClean'].map(opt).join(''));
   }
 
   function exportData() {
@@ -568,22 +600,23 @@
         saves = data.saves || {};
         Object.assign(settings, data.settings || {});
         saveRecords(); store.set(KEYS.saves, saves); saveSettings();
-        toast('기록을 가져왔어요');
+        toast(t('imported'));
         $('dlg').close();
         applyTheme();
+        applyLang();
         if (!(settings.lastKey && loadSave(settings.lastKey))) renderSide();
-      } catch { toast('올바른 백업 파일이 아니에요'); }
+      } catch { toast(t('badBackup')); }
     };
     reader.readAsText(file);
   }
 
   function resetData() {
-    if (!confirm('모든 기록과 진행 중인 게임을 삭제할까요? 되돌릴 수 없어요.')) return;
+    if (!confirm(t('confirmReset'))) return;
     records = { completed: [], best: {}, started: {}, daily: {} };
     saves = {};
     saveRecords(); store.set(KEYS.saves, saves);
     $('dlg').close();
-    toast('기록을 초기화했어요');
+    toast(t('resetDone'));
     startNew(settings.variant, settings.difficulty).then(renderSide);
   }
 
@@ -611,6 +644,7 @@
   $('btn-daily').onclick = daily;
   $('btn-records').onclick = showRecords;
   $('btn-settings').onclick = showSettings;
+  $('btn-lang').onclick = () => setLang(settings.lang === 'ko' ? 'en' : 'ko');
   $('btn-theme').onclick = () => {
     settings.theme = { auto: 'light', light: 'dark', dark: 'auto' }[settings.theme];
     saveSettings();
@@ -646,6 +680,11 @@
     else if (act === 'reset') resetData();
   });
   $('dlg-body').addEventListener('change', (e) => {
+    if (e.target.id === 'set-lang') {
+      setLang(e.target.value);
+      showSettings();
+      return;
+    }
     if (e.target.id === 'rk-v' || e.target.id === 'rk-d') {
       $('rk-list').innerHTML = rankHtml($('rk-v').value, $('rk-d').value);
       return;
@@ -704,7 +743,7 @@
   window.addEventListener('appinstalled', () => {
     installPrompt = null;
     $('btn-install').classList.add('hidden');
-    toast('앱이 설치되었어요');
+    toast(t('installed'));
   });
   if (isIOS && !standalone) $('btn-install').classList.remove('hidden');
   $('btn-install').onclick = async () => {
@@ -715,18 +754,12 @@
       $('btn-install').classList.add('hidden');
       return;
     }
-    openDialog('앱으로 설치하기', `
-      <ol class="steps">
-        <li><b>Safari</b>로 이 페이지를 엽니다.</li>
-        <li>아래쪽(또는 위쪽)의 <b>공유 버튼</b> <span class="kbdish">⬆︎</span>을 누릅니다.</li>
-        <li><b>홈 화면에 추가</b>를 선택하고 <b>추가</b>를 누릅니다.</li>
-      </ol>
-      <p class="hint-text">홈 화면의 스도쿠 아이콘으로 실행하면 앱처럼 전체 화면으로 열리고, 인터넷이 없어도 플레이할 수 있어요.<br>
-      ※ 홈 화면 앱은 Safari와 저장 공간이 따로라서, 기존 기록은 <b>기록 → 내보내기/가져오기</b>로 옮겨 주세요.</p>`);
+    openDialog(t('installTitle'), t('installHtml'));
   };
 
   /* ---------- 시작 ---------- */
   applyTheme();
+  applyLang();
   renderSide();
   if (!(settings.lastKey && loadSave(settings.lastKey))) {
     startNew(settings.variant, settings.difficulty).then(renderSide);

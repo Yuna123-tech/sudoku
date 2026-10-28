@@ -248,3 +248,7 @@ body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-are
   .top-actions .icon-btn { padding: 8px 9px; }
 }
 .hint-text a { color: var(--muted); }
+.lang-select {
+  font: inherit; font-size: .9rem; color: var(--text); background: var(--bg);
+  border: 1.5px solid var(--line-thin); border-radius: 10px; padding: 6px 10px; flex: none;
+}
