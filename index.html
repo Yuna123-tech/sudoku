@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>스도쿠 놀이터</title>
   <meta name="description" content="클래식, 대각선, 하이퍼, 지그소, 킬러, 홀짝 등 8가지 스도쿠를 5단계 난이도로 즐기는 무료 웹 게임">
-  <meta name="theme-color" content="#4f46e5">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%234f46e5'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'>9</text></svg>">
+  <meta name="theme-color" content="#f2eee6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1b1c1a" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%235e8c7a'/><text x='50' y='70' font-size='60' text-anchor='middle' fill='%23fbfaf6' font-family='sans-serif' font-weight='bold'>9</text></svg>">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <meta name="mobile-web-app-capable" content="yes">
@@ -17,13 +18,16 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><span class="logo">9</span><span class="brand-text" data-i18n="appName">스도쿠 놀이터</span></div>
+    <div class="brand">
+      <span class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i><b>9</b><i></i><i></i><i></i><i></i></span>
+      <span class="brand-text" data-i18n="appName">스도쿠 놀이터</span>
+    </div>
     <nav class="top-actions">
-      <button class="icon-btn hidden" id="btn-install" data-i18n-title="top.install">📲<span class="lbl" data-i18n="top.install">앱 설치</span></button>
-      <button class="icon-btn" id="btn-daily-top" data-i18n-title="top.daily">📅<span class="lbl" data-i18n="top.daily">오늘의 퍼즐</span></button>
-      <button class="icon-btn" id="btn-records" data-i18n-title="top.records">📊<span class="lbl" data-i18n="top.records">기록</span></button>
-      <button class="icon-btn" id="btn-settings" data-i18n-title="top.settings">⚙️<span class="lbl" data-i18n="top.settings">설정</span></button>
-      <button class="icon-btn" id="btn-lang" data-i18n-title="top.lang">🌐<span class="lbl" id="lang-label">English</span></button>
+      <button class="icon-btn hidden" id="btn-install" data-i18n-title="top.install"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></svg><span class="lbl" data-i18n="top.install">앱 설치</span></button>
+      <button class="icon-btn" id="btn-daily-top" data-i18n-title="top.daily"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg><span class="lbl" data-i18n="top.daily">오늘의 퍼즐</span></button>
+      <button class="icon-btn" id="btn-records" data-i18n-title="top.records"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><span class="lbl" data-i18n="top.records">기록</span></button>
+      <button class="icon-btn" id="btn-settings" data-i18n-title="top.settings"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl" data-i18n="top.settings">설정</span></button>
+      <button class="icon-btn" id="btn-lang" data-i18n-title="top.lang"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg><span class="lbl" id="lang-label">English</span></button>
     </nav>
   </header>
 
@@ -36,13 +40,16 @@
       </div>
 
       <div class="status">
-        <div class="status-title"><strong id="st-variant">클래식</strong> · <span id="st-diff">보통</span><button class="rule-btn" id="btn-rule" data-i18n-title="pick.rule">?</button><span id="st-daily" class="badge hidden" data-i18n="daily">오늘의 퍼즐</span></div>
-        <div class="status-meta">
-          <span data-i18n-title="st.mistakes">❌ <b id="st-mistakes">0</b></span>
-          <span data-i18n-title="st.hints">💡 <b id="st-hints">0</b></span>
-          <span class="timer" data-i18n-title="st.time">⏱ <b id="st-time">00:00</b></span>
-          <button class="icon-btn small" id="btn-pause" data-i18n-title="st.pause">⏸</button>
+        <div class="status-row">
+          <div class="status-title"><strong id="st-variant">클래식</strong><span class="sep"></span><span id="st-diff">보통</span><button class="rule-btn" id="btn-rule" data-i18n-title="pick.rule">?</button><span id="st-daily" class="badge hidden" data-i18n="daily">오늘의 퍼즐</span></div>
+          <div class="status-meta">
+            <span class="meta" data-i18n-title="st.mistakes"><span class="lives" id="st-mistakes"></span></span>
+            <span class="meta" data-i18n-title="st.hints"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg><b id="st-hints">0</b></span>
+            <span class="meta timer" data-i18n-title="st.time"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b id="st-time">00:00</b></span>
+            <button class="pause-btn" id="btn-pause" data-i18n-title="st.pause"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg></button>
+          </div>
         </div>
+        <div class="progress-line"><i id="st-progress"></i></div>
       </div>
 
       <div class="board-wrap">
@@ -58,11 +65,11 @@
 
       <div class="controls">
         <div class="tools">
-          <button class="tool" id="btn-undo"><span class="ti">↶</span><span data-i18n="tool.undo">실행취소</span></button>
-          <button class="tool" id="btn-erase"><span class="ti">⌫</span><span data-i18n="tool.erase">지우기</span></button>
-          <button class="tool" id="btn-notes"><span class="ti">✎</span><span data-i18n="tool.notes">메모</span><em id="notes-state">끔</em></button>
-          <button class="tool" id="btn-autonotes"><span class="ti">✦</span><span data-i18n="tool.autoNotes">자동 메모</span></button>
-          <button class="tool" id="btn-hint"><span class="ti">💡</span><span data-i18n="tool.hint">힌트</span></button>
+          <button class="tool" id="btn-undo"><span class="ti"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg></span><span data-i18n="tool.undo">실행취소</span></button>
+          <button class="tool" id="btn-erase"><span class="ti"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7M5 11l9 9"/></svg></span><span data-i18n="tool.erase">지우기</span></button>
+          <button class="tool" id="btn-notes"><span class="ti"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.17 6.81a1 1 0 0 0-3.98-3.98L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/><path d="m15 5 4 4"/></svg></span><span data-i18n="tool.notes">메모</span><em id="notes-state">끔</em></button>
+          <button class="tool" id="btn-autonotes"><span class="ti"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z"/></svg></span><span data-i18n="tool.autoNotes">자동 메모</span></button>
+          <button class="tool" id="btn-hint"><span class="ti"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg></span><span data-i18n="tool.hint">힌트</span></button>
         </div>
         <div class="numpad" id="numpad"></div>
       </div>
@@ -79,7 +86,7 @@
         <div class="diffs" id="diffs"></div>
         <div class="actions">
           <button class="btn primary" id="btn-new" data-i18n="side.new">새 게임</button>
-          <button class="btn" id="btn-daily" data-i18n="side.daily">📅 오늘의 퍼즐</button>
+          <button class="btn" id="btn-daily"><span data-i18n="side.daily">오늘의 퍼즐</span></button>
         </div>
         <p class="hint-text"><span data-i18n="side.saveNote">진행 중인 게임과 기록은 이 브라우저에 자동 저장됩니다.</span> · <a href="privacy.html" data-i18n="side.privacy">개인정보처리방침</a></p>
       </div>

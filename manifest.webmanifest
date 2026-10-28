@@ -7,8 +7,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f4f5fb",
-  "theme_color": "#4f46e5",
+  "background_color": "#f2eee6",
+  "theme_color": "#5e8c7a",
   "lang": "ko",
   "categories": [
     "games",

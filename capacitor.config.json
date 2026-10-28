@@ -3,6 +3,6 @@
   "appName": "스도쿠 놀이터",
   "webDir": "www",
   "android": {
-    "backgroundColor": "#f4f5fb"
+    "backgroundColor": "#f2eee6"
   }
 }

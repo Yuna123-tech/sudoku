@@ -37,6 +37,8 @@
 
   /* ---------- 상태 ---------- */
   const MAX_MISTAKES = 3;
+  const ICON_PAUSE = '<svg class="ico" viewBox="0 0 24 24"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg>';
+  const ICON_PLAY = '<svg class="ico" viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>';
   let game = null, ctx = null, sel = 40, notesMode = false, paused = false, generating = false;
   let cells = [];
 
@@ -249,7 +251,13 @@
       b.querySelector('small').textContent = Math.max(0, 9 - counts[d]);
       b.classList.toggle('done', counts[d] >= 9);
     });
-    $('st-mistakes').textContent = settings.mistakeLimit ? `${game.mistakes}/${MAX_MISTAKES}` : game.mistakes;
+    $('st-mistakes').innerHTML = settings.mistakeLimit
+      ? Array.from({ length: MAX_MISTAKES }, (_, k) => `<i class="${k < game.mistakes ? 'used' : ''}"></i>`).join('')
+      : `<i class="${game.mistakes ? 'used' : ''}"></i><b>${game.mistakes}</b>`;
+    // 진행률: 빈칸 중 채운 비율
+    const empty = puzzle.givens.filter((x) => !x).length;
+    const filled = values.filter((x, k) => x && !puzzle.givens[k]).length;
+    $('st-progress').style.width = `${empty ? Math.round((filled / empty) * 100) : 0}%`;
     $('st-hints').textContent = game.hints;
     $('st-time').textContent = fmt(game.elapsed);
     $('btn-notes').classList.toggle('on', notesMode);
@@ -260,13 +268,14 @@
   function renderSide() {
     const v = game ? game.puzzle.variant : settings.variant;
     const d = game ? game.puzzle.difficulty : settings.difficulty;
+    document.documentElement.dataset.variant = v;
     $('st-variant').textContent = vName(v);
     $('st-diff').textContent = dName(d);
     $('st-daily').classList.toggle('hidden', !(game && game.daily));
     $('rule').textContent = vDesc(v);
     $('variants').innerHTML = VARIANTS.map((x) => {
       const has = saves[comboKey(x.id, settings.difficulty)];
-      return `<button class="chip ${x.id === settings.variant && !(game && game.daily) ? 'active' : ''}" data-v="${x.id}">${vName(x.id)}${has ? `<span class="dot" title="${t('inProgress')}"></span>` : ''}</button>`;
+      return `<button class="chip ${x.id === settings.variant && !(game && game.daily) ? 'active' : ''}" data-v="${x.id}" data-variant="${x.id}"><span class="dot"></span><span class="name">${vShort(x.id)}</span>${has ? `<span class="prog" title="${t('inProgress')}"></span>` : ''}</button>`;
     }).join('');
     // 좁은 화면용 선택 상자
     $('pick-v').innerHTML = VARIANTS.map((x) =>
@@ -324,6 +333,7 @@
       } else {
         game.values[i] = d;
         game.notes[i] = 0;
+        popCell(i);
         clearPeerNotes(i, d);
         if (d !== game.puzzle.solution[i]) game.mistakes++;
       }
@@ -358,6 +368,14 @@
     hideOverlay();
     update();
     persist();
+  }
+
+  function popCell(i) {
+    const v = cells[i] && cells[i].val;
+    if (!v) return;
+    v.classList.remove('pop');
+    void v.offsetWidth; // 애니메이션 다시 시작
+    v.classList.add('pop');
   }
 
   function erase() {
@@ -409,6 +427,7 @@
     if (target < 0) return;
     pushHistory();
     values[target] = puzzle.solution[target];
+    popCell(target);
     game.notes[target] = 0;
     clearPeerNotes(target, values[target]);
     if (!game.hinted.includes(target)) game.hinted.push(target);
@@ -479,7 +498,7 @@
   function togglePause(force) {
     if (!game || game.won || game.over || generating) return;
     paused = force !== undefined ? force : !paused;
-    $('btn-pause').textContent = paused ? '▶' : '⏸';
+    $('btn-pause').innerHTML = paused ? ICON_PLAY : ICON_PAUSE;
     if (paused) {
       persist();
       showOverlay(() => `<h3>${t('paused')}</h3><p>${fmt(game.elapsed)}</p><button class="btn primary" data-act="resume">${t('resume')}</button>`);
