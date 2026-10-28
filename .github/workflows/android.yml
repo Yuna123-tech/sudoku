@@ -1,0 +1,84 @@
+# 안드로이드 앱 자동 만들기
+# - 시험용 APK: 휴대폰에 바로 설치해 볼 수 있는 파일 (GitHub "Releases"의 android-latest에 올라감)
+# - 스토어용 AAB: 서명 열쇠(Secrets)를 등록하면 플레이 스토어에 올릴 파일도 함께 만들어짐
+name: Build Android app
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['store/**', '**.md']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Install and sync web files into the app
+        run: |
+          npm ci
+          npm run sync
+
+      - name: Prepare signing key (only if secrets are set)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build APK and AAB
+        working-directory: android
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: 1.0.${{ github.run_number }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug bundleRelease --no-daemon --stacktrace
+
+      - name: Collect files
+        run: |
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk "dist/sudoku-test-1.0.${{ github.run_number }}.apk"
+          if [ -n "$ANDROID_KEYSTORE_PATH" ]; then
+            cp android/app/build/outputs/bundle/release/app-release.aab "dist/sudoku-store-1.0.${{ github.run_number }}.aab"
+          fi
+          ls -la dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sudoku-android-1.0.${{ github.run_number }}
+          path: dist/
+
+      - name: Publish test APK to the android-latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete android-latest --yes --cleanup-tag || true
+          gh release create android-latest dist/*.apk --prerelease \
+            --title "안드로이드 시험용 앱 (최신)" \
+            --notes "휴대폰에 직접 설치해 보는 시험용 앱입니다. 광고는 구글 시험용 광고가 나옵니다. 버전 1.0.${{ github.run_number }}" \
+            --target "${{ github.sha }}"

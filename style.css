@@ -53,7 +53,7 @@ body {
   /* 한 화면에 고정: 페이지 자체는 스크롤하지 않음 */
   height: 100vh; height: 100dvh; overflow: hidden; overscroll-behavior: none;
   display: flex; flex-direction: column;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) calc(env(safe-area-inset-bottom) + var(--ad-h, 0px)) env(safe-area-inset-left);
 }
 button, select { font: inherit; color: inherit; }
 button { cursor: pointer; }

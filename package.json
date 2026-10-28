@@ -1,0 +1,19 @@
+{
+  "name": "sudoku-playground",
+  "private": true,
+  "version": "1.0.0",
+  "description": "스도쿠 놀이터 - 웹 + 안드로이드 앱",
+  "scripts": {
+    "build:web": "node scripts/build-web.mjs www",
+    "build:site": "node scripts/build-web.mjs _site",
+    "sync": "npm run build:web && cap sync android"
+  },
+  "dependencies": {
+    "@capacitor-community/admob": "8.2.1",
+    "@capacitor/android": "8.5.3",
+    "@capacitor/core": "8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3"
+  }
+}

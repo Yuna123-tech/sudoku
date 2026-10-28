@@ -1,7 +1,7 @@
 /* 오프라인 실행용 서비스 워커: 캐시를 먼저 보여주고 뒤에서 최신 파일로 갱신 */
-const CACHE = 'sudoku-v3';
+const CACHE = 'sudoku-v4';
 const ASSETS = [
-  './', 'index.html', 'style.css', 'app.js', 'sudoku.js', 'i18n.js', 'worker.js', 'manifest.webmanifest',
+  './', 'index.html', 'style.css', 'app.js', 'sudoku.js', 'i18n.js', 'ads.js', 'worker.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',
 ];
 

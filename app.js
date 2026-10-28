@@ -106,6 +106,7 @@
   }
 
   async function startNew(variant, difficulty, opts = {}) {
+    window.SudokuAds.beforeNewGame();
     generating = true;
     showOverlay(() => `<div class="spinner"></div><p>${t('generating')}</p>`);
     let puzzle;
@@ -461,6 +462,7 @@
       ? t('hintNoRank')
       : `${rank === 1 && ranked.length > 1 ? t('newBest') : ''}${t('rankMsg', { rank, n: ranked.length })}${rank > 1 ? ` · ${t('bestT', { t: fmt(ranked[0].time) })}` : ''}`);
     if (game.daily && !records.daily[game.daily]) records.daily[game.daily] = game.elapsed;
+    window.SudokuAds.onWin();
     saveRecords();
     delete saves[game.key];
     store.set(KEYS.saves, saves);
@@ -745,9 +747,10 @@
 
   /* ---------- 앱 설치 (PWA) ---------- */
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   let installPrompt = null;
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  if ('serviceWorker' in navigator && location.protocol !== 'file:' && !isNative) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
   window.addEventListener('beforeinstallprompt', (e) => {
@@ -760,7 +763,7 @@
     $('btn-install').classList.add('hidden');
     toast(t('installed'));
   });
-  if (isIOS && !standalone) $('btn-install').classList.remove('hidden');
+  if (isIOS && !standalone && !isNative) $('btn-install').classList.remove('hidden');
   $('btn-install').onclick = async () => {
     if (installPrompt) {
       installPrompt.prompt();

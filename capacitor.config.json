@@ -1,0 +1,8 @@
+{
+  "appId": "io.github.yuna123tech.sudoku",
+  "appName": "스도쿠 놀이터",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#f4f5fb"
+  }
+}
