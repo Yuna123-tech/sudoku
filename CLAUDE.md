@@ -1,0 +1,51 @@
+# 스도쿠 놀이터 – 개발 안내 (AI·개발자용)
+
+이 문서는 이 프로젝트를 이어서 수정할 사람(또는 Claude 같은 AI)을 위한 안내입니다.
+소유자는 코딩을 하지 않으므로, 설명과 대답은 **한국어로, 쉬운 말로** 해 주세요.
+
+## 무엇인가
+- 8가지 종류 × 5단계 난이도 스도쿠 게임. 한국어/영어 지원.
+- **웹사이트**: https://yuna123-tech.github.io/sudoku/ (광고 없음, PWA로 홈 화면 설치·오프라인 가능)
+- **안드로이드 앱**: 같은 게임 파일을 Capacitor로 감싼 앱. 앱에만 구글 애드몹 광고.
+- 서버·데이터베이스 없음. 진행 중인 게임과 기록은 이용자 기기의 localStorage에 저장.
+
+## 파일 구조
+| 파일 | 역할 |
+| --- | --- |
+| `index.html`, `style.css` | 화면. 모든 기기에서 스크롤 없이 한 화면에 들어가야 함 (세로/가로/PC 미디어쿼리) |
+| `app.js` | 게임 진행, 저장(localStorage), 기록·랭킹, 설정, 대화상자 |
+| `sudoku.js` | 퍼즐 엔진: 변형 규칙, 풀이기, 생성기(해답 유일성 보장). 브라우저·워커·Node 공용 |
+| `worker.js` | 퍼즐 생성을 웹 워커에서 실행 |
+| `i18n.js` | 화면 문구 번역 (ko/en). 새 문구는 반드시 두 언어 모두 추가 |
+| `ads.js` | 앱에서만 광고 표시 (웹에서는 아무것도 안 함). 광고 단위 ID가 여기에 있음 |
+| `sw.js`, `manifest.webmanifest`, `icons/` | PWA(오프라인·설치). 파일을 추가하면 `sw.js`의 ASSETS 목록과 캐시 이름(`sudoku-vN`)도 갱신 |
+| `privacy.html` | 개인정보처리방침 (한/영) |
+| `scripts/build-web.mjs` | 게임 파일만 골라 `_site`(사이트) 또는 `www`(앱)로 복사. 새 웹 파일을 만들면 여기 목록에도 추가 |
+| `android/` | Capacitor 안드로이드 프로젝트 |
+| `store/` | 플레이 스토어 등록 자료(문구, 스크린샷, 배너, 안내서) |
+
+## 배포 (자동)
+- `main` 브랜치에 푸시하면:
+  - `.github/workflows/deploy.yml` → GitHub Pages 사이트 갱신
+  - `.github/workflows/android.yml` → 안드로이드 앱 빌드
+    - 시험용 APK: Releases의 `android-latest`에 올라감 (휴대폰에 직접 설치해 시험)
+    - 스토어용 AAB: 저장소 Secrets에 서명 열쇠가 있을 때만 만들어짐
+      (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`)
+- 버전 번호는 Actions 실행 번호로 자동 증가 (`1.0.<번호>`).
+
+## 광고 설정 (현재 구글 시험용 ID)
+애드몹 계정을 만든 뒤 아래 두 곳을 실제 ID로 바꿔야 수익이 생김:
+1. `android/app/src/main/res/values/strings.xml`의 `admob_app_id` (앱 ID, `~`가 들어간 것)
+2. `ads.js`의 `AD_UNITS` (배너·전면 광고 단위 ID, `/`가 들어간 것)
+
+## 로컬에서 확인
+```bash
+python3 -m http.server 8000
+```
+→ http://localhost:8000 . 앱 빌드는 Android SDK가 필요하므로 GitHub Actions를 사용.
+
+## 지켜야 할 것
+- 게임 동작을 바꾸면 웹과 앱 둘 다 영향을 받음.
+- 한 화면 맞춤 레이아웃을 깨지 않기 (휴대폰 세로·가로, 폴드, 태블릿, PC에서 스크롤 없음).
+- 서명 열쇠(.jks/.keystore)와 비밀번호는 절대 저장소에 커밋하지 않기.
+- localStorage 키 이름(`sudoku:saves`, `sudoku:records`, `sudoku:settings`)을 바꾸면 이용자 기록이 사라지므로 바꾸지 않기.

@@ -39,6 +39,12 @@
 - **아이폰**: Safari → 공유 버튼 → *홈 화면에 추가*
 - 설치 후 전체 화면 앱처럼 실행되고, 서비스 워커(`sw.js`) 덕분에 오프라인에서도 플레이할 수 있습니다.
 
+## 안드로이드 앱 (광고 포함)
+- 같은 게임 파일을 앱 안에 넣은 Capacitor 앱입니다. 광고(구글 애드몹)는 **앱에만** 나오고 웹사이트에는 없습니다.
+- `main`에 올리면 GitHub Actions가 앱 파일을 자동으로 만듭니다.
+- 시험용 앱 받기: [Releases → android-latest](https://github.com/Yuna123-tech/sudoku/releases/tag/android-latest)
+- 수정 방법·파일 구조는 [`CLAUDE.md`](CLAUDE.md) 참고
+
 ## 구글 플레이 스토어 등록
 [`store/README.md`](store/README.md) 안내를 따라 주세요. (등록 문구, 스크린샷, 배너 이미지, 개인정보처리방침 준비됨)
 
