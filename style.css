@@ -247,3 +247,4 @@ body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-are
   .top-actions { gap: 4px; }
   .top-actions .icon-btn { padding: 8px 9px; }
 }
+.hint-text a { color: var(--muted); }
