@@ -16,7 +16,7 @@
 
   const settings = Object.assign({
     variant: 'classic', difficulty: 'medium', theme: 'auto', lastKey: null,
-    showMistakes: true, highlightSame: true, highlightPeers: true, autoClean: true,
+    mistakeLimit: true, showMistakes: true, highlightSame: true, highlightPeers: true, autoClean: true,
   }, store.get(KEYS.settings, {}));
   let saves = store.get(KEYS.saves, {});
   let records = Object.assign({ completed: [], best: {}, started: {}, daily: {} }, store.get(KEYS.records, {}));
@@ -35,6 +35,7 @@
   }
 
   /* ---------- 상태 ---------- */
+  const MAX_MISTAKES = 3;
   let game = null, ctx = null, sel = 40, notesMode = false, paused = false, generating = false;
   let cells = [];
 
@@ -125,6 +126,7 @@
     buildBoard();
     renderSide();
     update();
+    if (game.over) showGameOver();
   }
 
   /* ---------- 판 그리기 ---------- */
@@ -218,7 +220,7 @@
       b.querySelector('small').textContent = Math.max(0, 9 - counts[d]);
       b.classList.toggle('done', counts[d] >= 9);
     });
-    $('st-mistakes').textContent = game.mistakes;
+    $('st-mistakes').textContent = settings.mistakeLimit ? `${game.mistakes}/${MAX_MISTAKES}` : game.mistakes;
     $('st-hints').textContent = game.hints;
     $('st-time').textContent = fmt(game.elapsed);
     $('btn-notes').classList.toggle('on', notesMode);
@@ -255,7 +257,7 @@
   }
 
   /* ---------- 플레이 ---------- */
-  const canPlay = () => game && !game.won && !paused && !generating;
+  const canPlay = () => game && !game.won && !game.over && !paused && !generating;
   const editable = (i) => !game.puzzle.givens[i] && !game.hinted.includes(i);
 
   function pushHistory() {
@@ -286,7 +288,36 @@
         if (d !== game.puzzle.solution[i]) game.mistakes++;
       }
     }
+    if (settings.mistakeLimit && game.mistakes >= MAX_MISTAKES) return gameOver();
     afterMove();
+  }
+
+  /* 실수 제한 초과: 판 종료 (저장해 두어 새로고침해도 유지) */
+  function gameOver() {
+    game.over = true;
+    records.failed = (records.failed || 0) + 1;
+    saveRecords();
+    update();
+    persist();
+    showGameOver();
+  }
+
+  function showGameOver() {
+    showOverlay(`
+      <h3>💥 게임 오버</h3>
+      <p>${MAX_MISTAKES}번 틀려서 이 판이 끝났어요.<br>시간 ${fmt(game.elapsed)}</p>
+      <div class="actions"><button class="btn primary" data-act="restart">같은 퍼즐 다시하기</button><button class="btn" data-act="new">새 퍼즐</button></div>`);
+  }
+
+  function restart() {
+    Object.assign(game, {
+      values: game.puzzle.givens.slice(), notes: new Array(81).fill(0), hinted: [],
+      elapsed: 0, mistakes: 0, hints: 0, history: [], over: false,
+    });
+    sel = game.values.findIndex((v) => !v);
+    hideOverlay();
+    update();
+    persist();
   }
 
   function erase() {
@@ -404,7 +435,7 @@
   }
 
   function togglePause(force) {
-    if (!game || game.won || generating) return;
+    if (!game || game.won || game.over || generating) return;
     paused = force !== undefined ? force : !paused;
     $('btn-pause').textContent = paused ? '▶' : '⏸';
     if (paused) {
@@ -508,6 +539,7 @@
   function showSettings() {
     const opt = (k, label, sub) => `<label class="setting"><span>${label}<small>${sub}</small></span><input type="checkbox" data-set="${k}" ${settings[k] ? 'checked' : ''}></label>`;
     openDialog('설정', [
+      opt('mistakeLimit', `실수 ${MAX_MISTAKES}번 제한`, `${MAX_MISTAKES}번 틀리면 그 판이 끝나고 다시 시작`),
       opt('showMistakes', '오답 표시', '정답과 다른 숫자를 빨간색으로 표시'),
       opt('highlightSame', '같은 숫자 강조', '선택한 칸과 같은 숫자를 강조'),
       opt('highlightPeers', '관련 칸 강조', '같은 행·열·영역의 칸을 강조'),
@@ -595,6 +627,7 @@
   $('overlay').addEventListener('click', (e) => {
     const act = e.target.closest('[data-act]')?.dataset.act;
     if (act === 'resume') togglePause(false);
+    else if (act === 'restart') restart();
     else if (act === 'new') startNew(settings.variant, settings.difficulty).then(renderSide);
     else if (act === 'records') showRecords();
     else if (act === 'retry') startNew(settings.variant, settings.difficulty).then(renderSide);
@@ -655,6 +688,42 @@
   }, 1000);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') persist(); });
   window.addEventListener('pagehide', persist);
+
+  /* ---------- 앱 설치 (PWA) ---------- */
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let installPrompt = null;
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    installPrompt = e;
+    $('btn-install').classList.remove('hidden');
+  });
+  window.addEventListener('appinstalled', () => {
+    installPrompt = null;
+    $('btn-install').classList.add('hidden');
+    toast('앱이 설치되었어요');
+  });
+  if (isIOS && !standalone) $('btn-install').classList.remove('hidden');
+  $('btn-install').onclick = async () => {
+    if (installPrompt) {
+      installPrompt.prompt();
+      await installPrompt.userChoice;
+      installPrompt = null;
+      $('btn-install').classList.add('hidden');
+      return;
+    }
+    openDialog('앱으로 설치하기', `
+      <ol class="steps">
+        <li><b>Safari</b>로 이 페이지를 엽니다.</li>
+        <li>아래쪽(또는 위쪽)의 <b>공유 버튼</b> <span class="kbdish">⬆︎</span>을 누릅니다.</li>
+        <li><b>홈 화면에 추가</b>를 선택하고 <b>추가</b>를 누릅니다.</li>
+      </ol>
+      <p class="hint-text">홈 화면의 스도쿠 아이콘으로 실행하면 앱처럼 전체 화면으로 열리고, 인터넷이 없어도 플레이할 수 있어요.<br>
+      ※ 홈 화면 앱은 Safari와 저장 공간이 따로라서, 기존 기록은 <b>기록 → 내보내기/가져오기</b>로 옮겨 주세요.</p>`);
+  };
 
   /* ---------- 시작 ---------- */
   applyTheme();
