@@ -31,6 +31,8 @@
   const GLYPH = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
   const HANJA = { c: { K: '楚', A: '士', R: '車', C: '包', N: '馬', E: '象', P: '卒' }, h: { K: '漢', A: '士', R: '車', C: '包', N: '馬', E: '象', P: '兵' } };
   const STAR = { 9: [2, 4, 6], 13: [3, 6, 9], 19: [3, 9, 15] };
+  const PAD = 0.42; // 바둑·오목 판 바깥 여백 (돌 반지름 0.47보다 살짝 작게)
+  const TAP_CELL_PX = 30; // 한 칸이 이보다 작으면 '두 번 눌러 두기'
   // 아주 작은 글자 크기에서는 브라우저가 글자 위치를 부정확하게 잡으므로,
   // 100배 큰 글자로 배치한 뒤 0.01배로 줄여서 칸 가운데에 정확히 놓음
   const label = (x, y, size, cls, content, extra = '') =>
@@ -203,7 +205,7 @@
     const st = G.st;
     if (!G.def.apply(st, mv)) { toast(t('bg.illegal')); return false; }
     G.moves.push(mv);
-    G.sel = -1; G.targets = []; G.hint = null;
+    G.sel = -1; G.targets = []; G.hint = null; G.ghost = null;
     if (mv && mv.pass) toast(t('bg.passed', { side: sideName(G.id, G.def.turn(st) === G.def.sides[0] ? G.def.sides[1] : G.def.sides[0]) }));
     if (G.id === 'baduk' && mv === -1) toast(t('bg.passed', { side: sideName('baduk', st.turn === 1 ? 2 : 1) }));
     if (G.id === 'baduk' && st.passes >= 2) { enterScoring(); return true; }
@@ -301,6 +303,17 @@
     return { r, c };
   }
 
+  // 칸이 작은 판에서는 첫 번째 탭은 미리보기, 같은 자리를 한 번 더 누르면 둠
+  function confirmTap(p) {
+    const box = $('bg-board').getBoundingClientRect();
+    const cellPx = box.width / (G.st.N + 1 - 2 * PAD);
+    if (cellPx >= TAP_CELL_PX || G.ghost === p) { G.ghost = null; return true; }
+    G.ghost = p;
+    if (!data.tapTip) { data.tapTip = 1; saveData(); toast(t('bg.tapAgain')); }
+    renderBoard();
+    return false;
+  }
+
   function onBoard(e) {
     if (!G || G.over || G.paused) return;
     const pos = boardPoint(e);
@@ -311,6 +324,7 @@
       if (G.st.b[p]) return;
       const why = OmokEngine.forbidden(G.st, p);
       if (why) { toast(t(`omok.${why}`)); return; }
+      if (!confirmTap(p)) return;
       commit(p);
       return;
     }
@@ -319,6 +333,7 @@
       if (G.scoring) { if (!G.scoring.loading) toggleDead(p); return; }
       if (G.thinking || isAiTurn()) return;
       if (!GoEngine.isLegal(G.st, p)) { toast(t('bg.illegal')); return; }
+      if (!confirmTap(p)) return;
       commit(p);
       return;
     }
@@ -358,7 +373,7 @@
     G.moves.pop();
     rebuild();
     if (G.opts.mode === 'ai' && G.def.turn(G.st) !== G.opts.mySide && G.moves.length) { G.moves.pop(); rebuild(); }
-    G.sel = -1; G.targets = []; G.hint = null;
+    G.sel = -1; G.targets = []; G.hint = null; G.ghost = null;
     persist();
     render();
     if (isAiTurn()) aiMove();
@@ -458,7 +473,7 @@
     const svg = $('bg-board');
     const wrap = $('bg-wrap');
     wrap.style.setProperty('--ar', G.def.aspect);
-    svg.setAttribute('viewBox', G.id === 'chess' ? '0 0 8 8' : G.id === 'janggi' ? '0 0 9.2 10.2' : `0 0 ${G.st.N + 1} ${G.st.N + 1}`);
+    svg.setAttribute('viewBox', G.id === 'chess' ? '0 0 8 8' : G.id === 'janggi' ? '0 0 9.2 10.2' : `${PAD} ${PAD} ${G.st.N + 1 - 2 * PAD} ${G.st.N + 1 - 2 * PAD}`);
     let html = '';
     if (G.id === 'chess') html = drawChess();
     else if (G.id === 'janggi') html = drawJanggi();
@@ -539,7 +554,7 @@
 
   function drawGo() {
     const st = G.st, N = st.N;
-    let h = `<rect class="go-bg" x="0" y="0" width="${N + 1}" height="${N + 1}" rx="0.3"/>`;
+    let h = `<rect class="go-bg" x="${PAD}" y="${PAD}" width="${N + 1 - 2 * PAD}" height="${N + 1 - 2 * PAD}" rx="0.25"/>`;
     for (let i = 0; i < N; i++) {
       h += `<line class="go-l" x1="1" y1="${i + 1}" x2="${N}" y2="${i + 1}"/><line class="go-l" x1="${i + 1}" y1="1" x2="${i + 1}" y2="${N}"/>`;
     }
@@ -563,12 +578,19 @@
     if (G.hint != null && typeof G.hint === 'number' && G.hint >= 0) {
       h += `<circle class="go-hint" cx="${(G.hint % N) + 1}" cy="${Math.floor(G.hint / N) + 1}" r="0.42"/>`;
     }
-    return h;
+    return h + (G.scoring ? '' : drawGhost());
+  }
+
+  function drawGhost() {
+    if (G.ghost == null || G.over) return '';
+    const N = G.st.N, x = (G.ghost % N) + 1, y = Math.floor(G.ghost / N) + 1;
+    return `<line class="ghost-line" x1="${PAD}" y1="${y}" x2="${N + 1 - PAD}" y2="${y}"/><line class="ghost-line" x1="${x}" y1="${PAD}" x2="${x}" y2="${N + 1 - PAD}"/>`
+      + `<circle class="stone ghost ${G.st.turn === 1 ? 'sb' : 'sw'}" cx="${x}" cy="${y}" r="0.47"/>`;
   }
 
   function drawOmok() {
     const st = G.st, N = st.N;
-    let h = `<rect class="go-bg" x="0" y="0" width="${N + 1}" height="${N + 1}" rx="0.3"/>`;
+    let h = `<rect class="go-bg" x="${PAD}" y="${PAD}" width="${N + 1 - 2 * PAD}" height="${N + 1 - 2 * PAD}" rx="0.25"/>`;
     for (let i = 0; i < N; i++) {
       h += `<line class="go-l" x1="1" y1="${i + 1}" x2="${N}" y2="${i + 1}"/><line class="go-l" x1="${i + 1}" y1="1" x2="${i + 1}" y2="${N}"/>`;
     }
@@ -589,7 +611,7 @@
       }
     }
     if (typeof G.hint === 'number' && G.hint >= 0) h += `<circle class="go-hint" cx="${(G.hint % N) + 1}" cy="${Math.floor(G.hint / N) + 1}" r="0.42"/>`;
-    return h;
+    return h + drawGhost();
   }
 
   function renderStatus() {

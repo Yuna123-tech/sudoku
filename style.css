@@ -577,3 +577,7 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
   .top-actions { gap: 0; }
   .top-actions .icon-btn { padding: 6px; }
 }
+
+/* 바둑·오목: 두 번 눌러 두기 미리보기 */
+.stone.ghost { opacity: .5; filter: none; }
+.ghost-line { stroke: var(--accent); stroke-width: .06px; opacity: .55; }
