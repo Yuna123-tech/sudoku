@@ -111,7 +111,7 @@
   let G = null; // { id, def, opts, moves, st, elapsed, hints, over, sel, targets, hint, thinking, scoring, paused }
   let reqId = 0;
 
-  const isAiTurn = () => G && G.opts.mode === 'ai' && G.def.turn(G.st) !== G.opts.mySide;
+  const isAiTurn = () => G && !G.pending && G.opts.mode === 'ai' && G.def.turn(G.st) !== G.opts.mySide;
   const flipped = () => {
     if (!G) return false;
     if (G.id === 'chess') return G.opts.mode === 'ai' && G.opts.mySide === 'b';
@@ -128,7 +128,7 @@
   const shownMoves = () => (G.review ? G.moves.slice(0, G.review.idx) : G.moves);
 
   function persist() {
-    if (!G || G.pastReview) return; // 지난 대국 복기 중에는 저장된 대국을 건드리지 않음
+    if (!G || G.pastReview || G.pending) return; // 지난 대국 복기 중에는 저장된 대국을 건드리지 않음
     if (G.over) { delete data.saves[G.id]; saveData(); return; }
     data.saves[G.id] = { opts: G.opts, moves: G.moves, elapsed: G.elapsed, hints: G.hints, scoring: G.scoring ? { dead: G.scoring.dead } : null };
     saveData();
@@ -154,6 +154,15 @@
     persist();
     render();
     if (isAiTurn()) aiMove();
+  }
+
+  // 아직 시작 전: 빈 판만 보여 주고 난이도(설정)를 고른 뒤 [대국 시작]을 눌러야 시작
+  const pickMsg = () => `<h3>${t(`tab.${G ? G.id : data.game}`)}</h3><p>${t('bg.pickLevel')}</p><button class="btn primary" data-act="bg-new">${t('bg.newGame')}</button>`;
+  function startPending(id) {
+    G = { id, def: DEFS[id], opts: resolveOpts(id, Object.assign({}, data.opts[id] || {}, { mySide: DEFS[id].sides[0] })), moves: [], elapsed: 0, hints: 0, over: null, sel: -1, targets: [], hint: null, thinking: false, scoring: null, paused: false, pending: true };
+    rebuild();
+    render();
+    showOverlay(pickMsg);
   }
 
   function resumeGame(id) {
@@ -343,7 +352,7 @@
   }
 
   function onBoard(e) {
-    if (!G || G.over || G.paused) return;
+    if (!G || G.over || G.paused || G.pending) return;
     const pos = boardPoint(e);
     if (!pos) return;
     if (G.id === 'othello') {
@@ -409,7 +418,8 @@
 
   /* ---------- 도구 ---------- */
   function takeback() {
-    if (!G || G.over || !G.moves.length) { toast(t('noUndo')); return; }
+    if (!G || G.pending) return;
+    if (G.over || !G.moves.length) { toast(t('noUndo')); return; }
     reqId++; G.thinking = false; G.scoring = null;
     G.moves.pop();
     rebuild();
@@ -421,7 +431,7 @@
   }
 
   async function hint() {
-    if (!G || G.over || G.thinking || G.scoring || isAiTurn()) return;
+    if (!G || G.pending || G.over || G.thinking || G.scoring || isAiTurn()) return;
     G.thinking = true; renderStatus();
     const game = G;
     const { id, r } = await ask('hint', 'hard');
@@ -442,7 +452,7 @@
   }
 
   function pass() {
-    if (!G || G.over || G.thinking || G.scoring || isAiTurn()) return;
+    if (!G || G.pending || G.over || G.thinking || G.scoring || isAiTurn()) return;
     if (G.id === 'janggi') {
       if (!G.def.canPass(G.st)) { toast(t('bg.cantPass')); return; }
       if (JanggiEngine.repeatsTooMuch(G.st, { pass: true })) { toast(t('bg.repeat4')); return; }
@@ -452,7 +462,7 @@
   }
 
   function resign() {
-    if (!G || G.over) return;
+    if (!G || G.over || G.pending) return;
     if (!confirm(t('bg.confirmResign'))) return;
     reqId++;
     const loser = G.opts.mode === 'ai' ? G.opts.mySide : G.def.turn(G.st);
@@ -496,7 +506,7 @@
       const prev = G.prevGame;
       G = null;
       if (prev) { G = prev; rebuild(); render(); if (G.over) showOverlay(overResult); else if (isAiTurn()) aiMove(); }
-      else if (!resumeGame(data.game)) startGame(data.game, data.opts[data.game] || {});
+      else if (!resumeGame(data.game)) startPending(data.game);
       return;
     }
     G.review = null;
@@ -506,9 +516,10 @@
   }
 
   /* ---------- 새 대국 설정 ---------- */
-  function newGameDialog() {
+  function newGameDialog(presetMode) {
     const id = G ? G.id : data.game;
     const o = Object.assign({}, DEFS[id].defaults, data.opts[id] || {});
+    if (presetMode) o.mode = presetMode;
     const seg = (name, items, cur) => `<div class="seg" data-name="${name}">${items.map(([v, label]) =>
       `<button type="button" class="chip ${String(v) === String(cur) ? 'active' : ''}" data-v="${v}">${label}</button>`).join('')}</div>`;
     const sides = DEFS[id].sides.map((s) => [s, sideName(id, s) + (s === DEFS[id].sides[0] ? (lang() === 'en' ? ' (first)' : ' (먼저)') : '')]);
@@ -820,7 +831,7 @@
   function showOverlay(fn) { overlayFn = fn; $('bg-overlay-content').innerHTML = fn(); $('bg-overlay').classList.remove('hidden'); }
   function hideOverlay() { overlayFn = null; $('bg-overlay').classList.add('hidden'); }
   function togglePause() {
-    if (!G || G.over) return;
+    if (!G || G.over || G.pending) return;
     G.paused = !G.paused;
     $('bg-pause').innerHTML = G.paused ? '<svg class="ico" viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>' : '<svg class="ico" viewBox="0 0 24 24"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg>';
     if (G.paused) showOverlay(() => `<h3>${t('paused')}</h3><p>${fmt(G.elapsed)}</p><button class="btn primary" data-act="bg-resume-pause">${t('resume')}</button>`);
@@ -868,10 +879,18 @@
       return;
     }
     hideOverlay();
-    if (!resumeGame(id)) startGame(id, data.opts[id] || {});
-    // 처음 여는 게임이면 게임 방법을 한 번 보여줌
+    const resumed = resumeGame(id);
+    if (!resumed) startPending(id);
+    // 처음 여는 게임이면 게임 방법을 한 번 보여줌 → 닫으면 새 대국 설정
     data.seenGuide = data.seenGuide || {};
-    if (!data.seenGuide[id]) { data.seenGuide[id] = 1; saveData(); setTimeout(() => showGuide(id), 300); }
+    const askSettings = () => { if (G && G.pending && G.id === id && data.game === id) newGameDialog(); };
+    if (!data.seenGuide[id]) {
+      data.seenGuide[id] = 1; saveData();
+      setTimeout(() => {
+        showGuide(id);
+        if (!resumed) $('dlg').addEventListener('close', () => setTimeout(askSettings, 50), { once: true });
+      }, 300);
+    } else if (!resumed) setTimeout(askSettings, 150);
   }
 
   /* ---------- 이벤트 ---------- */
@@ -890,22 +909,17 @@
   // 컴퓨터와 / 둘이서 바로 바꾸기 (새 대국으로 시작)
   $('bg-mode').addEventListener('click', (e) => {
     const b = e.target.closest('[data-mode]');
-    if (!b || !G || b.dataset.mode === G.opts.mode) return;
-    if (!G.over && G.moves.length && !confirm(t('bg.confirmNew'))) return;
-    const opts = Object.assign({}, DEFS[G.id].defaults, data.opts[G.id] || {}, { mode: b.dataset.mode });
-    if (opts.mode === 'pvp') opts.mySide = DEFS[G.id].sides[0];
-    data.opts[G.id] = opts;
-    saveData();
-    reqId++;
-    hideOverlay();
-    startGame(G.id, opts);
+    if (!b || !G) return;
+    if (!G.pending && b.dataset.mode === G.opts.mode) return;
+    if (!G.pending && !G.over && G.moves.length && !confirm(t('bg.confirmNew'))) return;
+    newGameDialog(b.dataset.mode);
   });
   const showGuide = (id) => openDialog(`${t('howto')} · ${t(`tab.${id}`)}`, t(`guide.${id}`));
   $('bg-rule').onclick = () => showGuide(G ? G.id : data.game);
   $('bg-pause').onclick = togglePause;
   $('bg-overlay').addEventListener('click', (e) => {
     const act = e.target.closest('[data-act]')?.dataset.act;
-    if (act === 'bg-new') { hideOverlay(); newGameDialog(); }
+    if (act === 'bg-new') { if (!G || !G.pending) hideOverlay(); newGameDialog(); }
     else if (act === 'bg-review') startReview();
     else if (act === 'bg-records') showRecords();
     else if (act === 'bg-resume-pause') togglePause();
@@ -931,7 +945,7 @@
   });
 
   setInterval(() => {
-    if (!G || G.over || G.paused || document.body.dataset.game === 'sudoku' || document.visibilityState !== 'visible') return;
+    if (!G || G.over || G.paused || G.pending || document.body.dataset.game === 'sudoku' || document.visibilityState !== 'visible') return;
     G.elapsed++;
     $('bg-time').textContent = fmt(G.elapsed);
     if (G.elapsed % 5 === 0) persist();
