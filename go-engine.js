@@ -39,6 +39,7 @@
   function floodGroup(b, N, p) {
     ensure(N * N);
     const nb = nbCache[N], color = b[p], stamp = work.stamp, stack = work.stack, group = work.group;
+    if (work.gen > 0x3fffffff) { work.stamp.fill(0); work.gen = 0; } // 오래 쓰면 번호가 넘치지 않게 초기화
     const g = ++work.gen;
     let sp = 0, gs = 0, libs = 0;
     work.lastLib = -1;
