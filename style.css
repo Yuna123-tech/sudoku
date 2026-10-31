@@ -638,3 +638,4 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
   #sd-play .tool .ti { width: clamp(34px, 5dvh, 46px); height: clamp(34px, 5dvh, 46px); border-radius: 13px; }
   #sd-play .tool .ti .ico { width: 19px; height: 19px; }
 }
+.tool em.zero { background: var(--error-bg); color: var(--error-text); }

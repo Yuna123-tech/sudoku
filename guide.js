@@ -44,7 +44,7 @@
         '같은 모양이 <b>3번</b> 나오거나 <b>50수</b> 동안 잡거나 폰을 움직이지 않으면, 원하는 사람이 <b>[무승부]</b> 버튼을 눌러 비길 수 있어요 (국제체스연맹 규칙).',
         '같은 모양이 <b>5번</b> 나오거나 <b>75수</b>가 되면 자동으로 무승부예요.',
       ]) +
-      H('조작') + UL(['내 말을 누르면 갈 수 있는 곳에 점이 표시돼요. 점을 누르면 이동해요.', '<b>무르기</b>: 한 수 되돌리기 · <b>힌트</b>: 추천 수 표시 · <b>기권</b>: 대국 포기']) +
+      H('조작') + UL(['내 말을 누르면 갈 수 있는 곳에 점이 표시돼요. 점을 누르면 이동해요.', '<b>무르기</b>: 한 수 되돌리기(한 판에 3번까지) · <b>힌트</b>: 추천 수 표시 · <b>기권</b>: 대국 포기']) +
       TIP('처음에는 가운데 폰을 움직이고, 나이트와 비숍을 빨리 꺼내고, <b>캐슬링</b>으로 킹을 안전하게 하세요. 말을 공짜로 주지 않게 조심!'),
 
     'guide.janggi': GOAL('상대 <b>궁(楚·漢)</b>이 어디로도 피할 수 없게 공격하면(<b>외통</b>) 이겨요. <b>초(파랑)</b>가 먼저 둬요.') +
@@ -67,7 +67,7 @@
         '이 앱에서는 대국이 너무 길어지지 않게 200수가 되면 점수로 판정해요.',
         '<b>상차림</b>: 시작할 때 마·상의 자리를 4가지로 고를 수 있어요(새 대국 설정).',
       ]) +
-      H('조작') + UL(['내 말을 누르면 갈 수 있는 곳이 표시돼요. 그곳을 누르면 이동해요.', '<b>한수쉼</b>·<b>무르기</b>·<b>힌트</b>·<b>기권</b> 버튼을 쓸 수 있어요.']) +
+      H('조작') + UL(['내 말을 누르면 갈 수 있는 곳이 표시돼요. 그곳을 누르면 이동해요.', '<b>한수쉼</b>·<b>무르기</b>(한 판에 3번까지)·<b>힌트</b>·<b>기권</b> 버튼을 쓸 수 있어요.']) +
       TIP('<b>차</b>는 가장 귀한 말이니 쉽게 주지 마세요. <b>포</b>는 다리(넘을 말)가 있어야 움직이니 다리를 만들어 주세요.'),
 
     'guide.baduk': GOAL('돌로 둘러싼 <b>집</b>(빈 교차점)과 <b>따낸 돌</b>을 합한 점수가 더 많은 쪽이 이겨요. 흑이 먼저 두고, 백은 <b>덤 6.5집</b>을 받아요.') +
@@ -122,7 +122,7 @@
       H('How pieces move') + UL(['<b>King ♚</b>: one square any direction.', '<b>Queen ♛</b>: any distance across, down or diagonally.', '<b>Rook ♜</b>: any distance across or down.', '<b>Bishop ♝</b>: any distance diagonally.', '<b>Knight ♞</b>: an L-shape (two + one). The only piece that <b>jumps</b>.', '<b>Pawn ♟</b>: one square forward (two on its first move); captures <b>diagonally forward</b>.']) +
       H('Special rules') + UL(['<b>Check</b>: your king is attacked — you must get out of it.', '<b>Castling</b>: if king and rook haven’t moved and the path is clear, the king moves two squares toward the rook and the rook jumps over.', '<b>En passant</b>: a pawn that just moved two squares past yours can be captured diagonally on the next move.', '<b>Promotion</b>: a pawn reaching the last rank becomes a queen, rook, bishop or knight.']) +
       H('Draws') + UL(['<b>Stalemate</b>: no legal move but not in check.', 'Neither side has enough pieces to mate.', 'After a <b>threefold repetition</b> or <b>50 moves</b> without capture or pawn move, a player may press <b>[Draw]</b> to claim a draw (FIDE).', '<b>Fivefold repetition</b> or the <b>75-move rule</b> ends the game in a draw automatically.']) +
-      H('Controls') + UL(['Tap your piece to see dots where it can go, then tap a dot.', '<b>Undo</b> · <b>Hint</b> · <b>Resign</b>']) +
+      H('Controls') + UL(['Tap your piece to see dots where it can go, then tap a dot.', '<b>Undo</b> (3 per game) · <b>Hint</b> · <b>Resign</b>']) +
       TIP('Move a center pawn, develop knights and bishops early, and <b>castle</b> to keep your king safe.'),
     'guide.janggi': GOAL('Trap the enemy <b>general</b> so it cannot escape (checkmate) to win. <b>Cho (blue)</b> moves first.') +
       H('How pieces move') + UL(['<b>General</b> & <b>Guards 士</b>: one step along the lines, only inside the <b>palace</b> (the 9 points with diagonals).', '<b>Chariot 車</b>: any distance across or down. The strongest piece.', '<b>Cannon 包</b>: must <b>jump over exactly one piece</b>. Cannons can never jump or capture cannons.', '<b>Horse 馬</b>: one step straight, then one diagonal. Blocked if the first point is occupied.', '<b>Elephant 象</b>: one step straight, then two diagonal. Blocked by any piece on its path.', '<b>Soldier 卒/兵</b>: one step forward or sideways, never back. Diagonal forward inside the enemy palace.', 'Inside a palace, chariots, cannons and soldiers can also follow the diagonals.']) +

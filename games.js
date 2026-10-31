@@ -32,7 +32,8 @@
   const HANJA = { c: { K: '楚', A: '士', R: '車', C: '包', N: '馬', E: '象', P: '卒' }, h: { K: '漢', A: '士', R: '車', C: '包', N: '馬', E: '象', P: '兵' } };
   const STAR = { 9: [2, 4, 6], 13: [3, 6, 9], 19: [3, 9, 15] };
   const PAD = 0.42; // 바둑·오목 판 바깥 여백 (돌 반지름 0.47보다 살짝 작게)
-  const TAP_CELL_PX = 30; // 한 칸이 이보다 작으면 '두 번 눌러 두기'
+  const TAP_CELL_PX = 30; // 한 칸이 이보다 작으면 '두 번 눌러 두기' (바로 놓기 버튼으로 바꿀 수 있음)
+  const MAX_UNDO = 3; // 무르기는 한 판에 3번까지
   // 아주 작은 글자 크기에서는 브라우저가 글자 위치를 부정확하게 잡으므로,
   // 100배 큰 글자로 배치한 뒤 0.01배로 줄여서 칸 가운데에 정확히 놓음
   const label = (x, y, size, cls, content, extra = '') =>
@@ -130,7 +131,7 @@
   function persist() {
     if (!G || G.pastReview || G.pending) return; // 지난 대국 복기 중에는 저장된 대국을 건드리지 않음
     if (G.over) { delete data.saves[G.id]; saveData(); return; }
-    data.saves[G.id] = { started: 1, opts: G.opts, moves: G.moves, elapsed: G.elapsed, hints: G.hints, scoring: G.scoring ? { dead: G.scoring.dead } : null };
+    data.saves[G.id] = { started: 1, opts: G.opts, moves: G.moves, elapsed: G.elapsed, hints: G.hints, undos: G.undos || 0, scoring: G.scoring ? { dead: G.scoring.dead } : null };
     saveData();
   }
 
@@ -149,7 +150,7 @@
   }
 
   function startGame(id, o) {
-    G = { id, def: DEFS[id], opts: resolveOpts(id, o), moves: [], elapsed: 0, hints: 0, over: null, sel: -1, targets: [], hint: null, thinking: false, scoring: null, paused: false };
+    G = { id, def: DEFS[id], opts: resolveOpts(id, o), moves: [], elapsed: 0, hints: 0, undos: 0, over: null, sel: -1, targets: [], hint: null, thinking: false, scoring: null, paused: false };
     rebuild();
     persist();
     render();
@@ -173,7 +174,7 @@
     // 예전 버전에서 탭만 열어 자동 시작된 대국(내가 아직 한 수도 안 둠)은 이어하지 않고 난이도부터 고르게 함
     const mine = !s.opts || s.opts.mode !== 'ai' ? 0 : (s.opts.mySide === DEFS[id].sides[0] ? 0 : 1);
     if (!s.started && !s.scoring && (s.moves || []).length <= mine) { delete data.saves[id]; saveData(); return false; }
-    G = { id, def: DEFS[id], opts: s.opts, moves: s.moves || [], elapsed: s.elapsed || 0, hints: s.hints || 0, over: null, sel: -1, targets: [], hint: null, thinking: false, scoring: null, paused: false };
+    G = { id, def: DEFS[id], opts: s.opts, moves: s.moves || [], elapsed: s.elapsed || 0, hints: s.hints || 0, undos: s.undos || 0, over: null, sel: -1, targets: [], hint: null, thinking: false, scoring: null, paused: false };
     try { rebuild(); } catch { return false; }
     if (s.scoring) G.scoring = { dead: s.scoring.dead || [] };
     render();
@@ -344,10 +345,21 @@
   }
 
   // 칸이 작은 판에서는 첫 번째 탭은 미리보기, 같은 자리를 한 번 더 누르면 둠
-  function confirmTap(p) {
+  // 지금 '바로 놓기'인지: 직접 고른 값이 있으면 그것, 없으면 칸 크기로 자동
+  function oneTapOn() {
+    if (typeof data.oneTap === 'boolean') return data.oneTap;
     const box = $('bg-board').getBoundingClientRect();
-    const cellPx = box.width / (G.st.N + 1 - 2 * PAD);
-    if (cellPx >= TAP_CELL_PX || G.ghost === p) { G.ghost = null; return true; }
+    return !box.width || box.width / (G.st.N + 1 - 2 * PAD) >= TAP_CELL_PX;
+  }
+  function toggleOneTap() {
+    data.oneTap = !oneTapOn();
+    saveData();
+    G.ghost = null;
+    toast(t(data.oneTap ? 'bg.oneTapOn' : 'bg.oneTapOff'));
+    render();
+  }
+  function confirmTap(p) {
+    if (oneTapOn() || G.ghost === p) { G.ghost = null; return true; }
     G.ghost = p;
     if (!data.tapTip) { data.tapTip = 1; saveData(); toast(t('bg.tapAgain')); }
     renderBoard();
@@ -422,7 +434,11 @@
   /* ---------- 도구 ---------- */
   function takeback() {
     if (!G || G.pending) return;
-    if (G.over || !G.moves.length) { toast(t('noUndo')); return; }
+    const mine = G.opts.mode === 'ai' && G.opts.mySide !== G.def.sides[0] ? 1 : 0; // 컴퓨터가 먼저 둔 첫 수는 무를 수 없음
+    if (G.over || G.moves.length <= mine) { toast(t('noUndo')); return; }
+    if ((G.undos || 0) >= MAX_UNDO) { toast(t('bg.undoLimit', { n: MAX_UNDO })); return; }
+    G.undos = (G.undos || 0) + 1;
+    toast(t('bg.undoLeft', { n: MAX_UNDO - G.undos }));
     reqId++; G.thinking = false; G.scoring = null;
     G.moves.pop();
     rebuild();
@@ -798,9 +814,12 @@
     tools.className = 'tools bg-tools';
     const claimBtn = G.id === 'chess' && !G.over && ChessEngine.claimable(G.st) ? `<button class="tool claim" data-tool="claim"><span class="ti">½</span><span>${t('tool.claim')}</span></button>` : '';
     const passBtn = G.id === 'chess' || G.id === 'omok' || G.id === 'othello' ? '' : `<button class="tool" data-tool="pass"><span class="ti">${ICON.pass}</span><span>${t(`tool.pass.${G.id}`)}</span></button>`;
-    tools.innerHTML = `<button class="tool" data-tool="undo"><span class="ti">${ICON.undo}</span><span>${t('tool.takeback')}</span></button>
+    const left = MAX_UNDO - (G.undos || 0);
+    const tapBtn = G.id === 'baduk' || G.id === 'omok' ? `<button class="tool ${oneTapOn() ? 'on' : ''}" data-tool="tap"><span class="ti">${ICON.tap}</span><span>${t('tool.oneTap')}</span><em>${t(oneTapOn() ? 'on' : 'off')}</em></button>` : '';
+    tools.innerHTML = `<button class="tool" data-tool="undo"><span class="ti">${ICON.undo}</span><span>${t('tool.takeback')}</span><em class="${left ? '' : 'zero'}">${left}</em></button>
       <button class="tool" data-tool="hint"><span class="ti">${ICON.bulb}</span><span>${t('tool.hint')}</span></button>
       ${passBtn}
+      ${tapBtn}
       ${claimBtn}
       <button class="tool" data-tool="resign"><span class="ti">${ICON.flag}</span><span>${t('tool.resign')}</span></button>
       <button class="tool" data-tool="new"><span class="ti">${ICON.plus}</span><span>${t('bg.newGame')}</span></button>`;
@@ -826,6 +845,7 @@
     bulb: '<svg class="ico" viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg>',
     pass: '<svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>',
     flag: '<svg class="ico" viewBox="0 0 24 24"><path d="M4 22V4"/><path d="M4 4h12l-2 4 2 4H4"/></svg>',
+    tap: '<svg class="ico" viewBox="0 0 24 24"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10"/><path d="M12 9.5a1.5 1.5 0 0 1 3 0V11"/><path d="M15 10.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.5a6 6 0 0 1-4.6-2.2L4.5 15.6a1.5 1.5 0 0 1 2.3-1.9L9 16"/></svg>',
     plus: '<svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
   };
 
@@ -905,7 +925,7 @@
   $('bg-tools').addEventListener('click', (e) => {
     const b = e.target.closest('[data-tool]');
     if (!b) return;
-    ({ undo: takeback, hint, pass, resign, claim: claimDraw, first: () => stepReview('first'), prev: () => stepReview('prev'), next: () => stepReview('next'), last: () => stepReview('last'), endReview, new: () => { if (G && !G.over && G.moves.length && !confirm(t('bg.confirmNew'))) return; newGameDialog(); } })[b.dataset.tool]();
+    ({ undo: takeback, tap: toggleOneTap, hint, pass, resign, claim: claimDraw, first: () => stepReview('first'), prev: () => stepReview('prev'), next: () => stepReview('next'), last: () => stepReview('last'), endReview, new: () => { if (G && !G.over && G.moves.length && !confirm(t('bg.confirmNew'))) return; newGameDialog(); } })[b.dataset.tool]();
   });
   $('bg-new').onclick = () => { if (G && !G.over && G.moves.length && !confirm(t('bg.confirmNew'))) return; newGameDialog(); };
   $('bg-side-new').onclick = $('bg-new').onclick;
