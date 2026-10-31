@@ -282,6 +282,14 @@
     let stop = false, nodes = 0;
     const order = (ms) => ms.sort((a, b) =>
       (b.captured ? VAL[b.captured[1]] * 10 - VAL[b.piece[1]] : 0) - (a.captured ? VAL[a.captured[1]] * 10 - VAL[a.piece[1]] : 0));
+    // 수 순서 개선(킬러 수 + 히스토리): 같은 시간에 더 깊이 읽게 해 줌
+    const killers = [], hist = new Int32Array(10000);
+    const mkey = (m) => m.from * 100 + m.to;
+    const orderQuiet = (ms, ply) => {
+      const k = killers[ply] || [];
+      const sc = (m) => (m.captured ? 1e7 + VAL[m.captured[1]] * 10 - VAL[m.piece[1]] : (mkey(m) === k[0] ? 5e6 : mkey(m) === k[1] ? 4e6 : hist[mkey(m)]));
+      return ms.map((m) => [sc(m), m]).sort((a, b) => b[0] - a[0]).map((x) => x[1]);
+    };
     function quiesce(alpha, beta, qd) {
       if ((++nodes & 1023) === 0 && Date.now() > deadline) stop = true;
       const sp = evaluate(st);
@@ -305,7 +313,7 @@
       if (depth <= 0) return quiesce(alpha, beta, 0);
       const me = st.turn;
       let best = -Infinity, any = false;
-      for (const m of order(pseudoMoves(st, false))) {
+      for (const m of orderQuiet(pseudoMoves(st, false), ply)) {
         const u = make(st, m);
         if (inCheck(st, me)) { unmake(st, u); continue; }
         any = true;
@@ -314,7 +322,14 @@
         if (stop) return best === -Infinity ? 0 : best;
         if (sc > best) best = sc;
         if (sc > alpha) alpha = sc;
-        if (alpha >= beta) break;
+        if (alpha >= beta) {
+          if (!m.captured) {
+            const k = killers[ply] || (killers[ply] = []);
+            if (k[0] !== mkey(m)) { k[1] = k[0]; k[0] = mkey(m); }
+            hist[mkey(m)] += depth * depth;
+          }
+          break;
+        }
       }
       if (!any) {
         if (inCheck(st, me)) return -MATE + ply;

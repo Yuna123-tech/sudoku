@@ -137,6 +137,8 @@
 
   function resolveOpts(id, o) {
     const opts = Object.assign({}, DEFS[id].defaults, o);
+    // 대화상자에서 고른 값은 글자('1','2')라서, 숫자로 쓰는 게임(바둑·오목·오델로)은 숫자로 맞춤
+    if (typeof DEFS[id].sides[0] === 'number' && opts.mySide !== 'random') opts.mySide = +opts.mySide;
     if (opts.mySide === 'random') {
       const s = DEFS[id].sides;
       opts.mySide = s[Math.floor(Math.random() * 2)];
@@ -174,6 +176,7 @@
     // 예전 버전에서 탭만 열어 자동 시작된 대국(내가 아직 한 수도 안 둠)은 이어하지 않고 난이도부터 고르게 함
     const mine = !s.opts || s.opts.mode !== 'ai' ? 0 : (s.opts.mySide === DEFS[id].sides[0] ? 0 : 1);
     if (!s.started && !s.scoring && (s.moves || []).length <= mine) { delete data.saves[id]; saveData(); return false; }
+    if (typeof DEFS[id].sides[0] === 'number' && s.opts && s.opts.mySide !== 'random') s.opts.mySide = +s.opts.mySide;
     G = { id, def: DEFS[id], opts: s.opts, moves: s.moves || [], elapsed: s.elapsed || 0, hints: s.hints || 0, undos: s.undos || 0, over: null, sel: -1, targets: [], hint: null, thinking: false, scoring: null, paused: false };
     try { rebuild(); } catch { return false; }
     if (s.scoring) G.scoring = { dead: s.scoring.dead || [] };
@@ -979,6 +982,7 @@
   window.BoardGames = {
     active: () => document.body.dataset.game && document.body.dataset.game !== 'sudoku',
     showRecords,
+    _state: () => G, // 자동 시험용 (화면에는 영향 없음)
     refresh() { if (G) { render(); if (overlayFn && !$('bg-overlay').classList.contains('hidden')) showOverlay(overlayFn); } else renderSide(); },
   };
 

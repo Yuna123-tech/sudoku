@@ -324,7 +324,7 @@
     easy: { depth: 1, pick: 2, defense: 1, timeMs: 400 },                  // 공격·수비를 보고 상위 2수 중 하나
     medium: { depth: 2, width: 8, defense: 1, timeMs: 1500, blunder: 0.25 }, // 상대의 다음 수까지 봄, 가끔 실수
     hard: { depth: 2, width: 10, defense: 1, timeMs: 3000, vcf: 6, blunder: 0.1 }, // + 짧은 연속 4(VCF) 공격·수비, 드물게 실수
-    expert: { depth: 2, width: 14, defense: 1, timeMs: 6000, vcf: 14 },    // + 긴 VCF, 더 넓게
+    expert: { depth: 4, width: 12, defense: 1, timeMs: 6000, vcf: 16 },    // + 긴 VCF, 4수 앞까지 읽기
   };
   const bestMove = (st, level) => search(st, LEVELS[level] || LEVELS.medium);
 
