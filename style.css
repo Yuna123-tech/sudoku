@@ -1,5 +1,5 @@
 /* =========================================================
-   스도쿠 놀이터 – "종이 퍼즐북" 테마
+   두뇌 게임 놀이터 – "종이 퍼즐북" 테마
    - 눈이 편안한 따뜻한 종이색 + 은은한 종이 질감
    - 스도쿠 종류마다 고유 색 (html[data-variant]가 바뀌면 전체 강조색이 바뀜)
    ========================================================= */
@@ -570,4 +570,10 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
 /* 좁은 화면: 대결 방식·난이도는 위쪽 선택 버튼에 이미 보이므로 상태 줄에서는 숨김 */
 @media (max-width: 399px) {
   #bg-play .status-title .sep, #bg-sub, #sd-play .status-title .sep, #st-diff { display: none; }
+}
+/* 작은 휴대폰: 앱 이름이 잘리지 않게 상단 버튼 간격을 줄임 */
+@media (max-width: 400px) {
+  .brand { font-size: 1rem; gap: 8px; }
+  .top-actions { gap: 0; }
+  .top-actions .icon-btn { padding: 6px; }
 }

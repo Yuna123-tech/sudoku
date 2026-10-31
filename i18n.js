@@ -1,7 +1,7 @@
 /* 화면 문구 번역 (한국어 / English) */
 window.I18N = {
   ko: {
-    appName: '스도쿠 놀이터',
+    appName: '두뇌 게임 놀이터',
     langName: '한국어',
     'top.install': '앱 설치', 'top.records': '기록', 'top.settings': '설정', 'top.theme': '테마 전환', 'top.lang': '언어 / Language', 'top.daily': '오늘의 퍼즐',
     'pick.new': '새 게임', 'pick.rule': '규칙 보기', rules: '규칙',
@@ -63,7 +63,7 @@ window.I18N = {
   },
 
   en: {
-    appName: 'Sudoku Playground',
+    appName: 'Brain Game Playground',
     langName: 'English',
     'top.install': 'Install', 'top.records': 'Records', 'top.settings': 'Settings', 'top.theme': 'Toggle theme', 'top.lang': 'Language / 언어', 'top.daily': 'Daily puzzle',
     'pick.new': 'New', 'pick.rule': 'Show rules', rules: 'Rules',

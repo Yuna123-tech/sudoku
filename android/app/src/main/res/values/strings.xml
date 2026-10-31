@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">스도쿠 놀이터</string>
-    <string name="title_activity_main">스도쿠 놀이터</string>
+    <string name="app_name">두뇌 게임 놀이터</string>
+    <string name="title_activity_main">두뇌 게임 놀이터</string>
     <string name="package_name">io.github.yuna123tech.sudoku</string>
     <string name="custom_url_scheme">io.github.yuna123tech.sudoku</string>
 </resources>

@@ -2,7 +2,7 @@
   "name": "sudoku-playground",
   "private": true,
   "version": "1.0.0",
-  "description": "스도쿠 놀이터 - 웹 + 안드로이드 앱",
+  "description": "두뇌 게임 놀이터 - 웹 + 안드로이드 앱",
   "scripts": {
     "build:web": "node scripts/build-web.mjs www",
     "build:site": "node scripts/build-web.mjs _site",

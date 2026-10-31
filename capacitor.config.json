@@ -1,6 +1,6 @@
 {
   "appId": "io.github.yuna123tech.sudoku",
-  "appName": "스도쿠 놀이터",
+  "appName": "두뇌 게임 놀이터",
   "webDir": "www",
   "android": {
     "backgroundColor": "#f2eee6"
