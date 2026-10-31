@@ -121,7 +121,7 @@
     }
     const key = opts.daily ? `daily-${opts.daily}` : comboKey(variant, difficulty);
     game = {
-      key, puzzle, daily: opts.daily || null,
+      key, puzzle, daily: opts.daily || null, started: 1,
       values: puzzle.givens.slice(), notes: new Array(81).fill(0), hinted: [],
       elapsed: 0, mistakes: 0, hints: 0, history: [], won: false,
       createdAt: Date.now(), updatedAt: Date.now(),
@@ -522,10 +522,57 @@
   }
 
   function newGame() {
-    const inProgress = game && !game.won && !game.daily && game.history.length > 0;
+    const inProgress = game && !game.won && !game.over && !game.daily && game.history.length > 0;
     if (inProgress && !confirm(t('confirmNew'))) return;
-    if (game && !game.daily) delete saves[game.key];
-    startNew(settings.variant, settings.difficulty).then(renderSide);
+    newGameDialog();
+  }
+
+  /* 새 게임: 종류와 난이도를 먼저 고르고 [게임 시작]을 눌러야 시작 */
+  function newGameDialog() {
+    const vals = { v: settings.variant, d: settings.difficulty };
+    const chips = (name, list, cur, label) => `<div class="seg" data-name="${name}">${list.map((x) =>
+      `<button type="button" class="chip ${x.id === cur ? 'active' : ''}" data-v="${x.id}">${label(x.id)}</button>`).join('')}</div>`;
+    openDialog(`${t('tab.sudoku')} · ${t('side.new')}`, `<div class="ng">
+      <label>${t('side.variants')}</label>${chips('v', VARIANTS, vals.v, vShort)}
+      <p class="hint-text" id="ng-vdesc"></p>
+      <label>${t('side.difficulty')}</label>${chips('d', DIFFICULTIES, vals.d, dName)}
+      <button type="button" class="btn primary ng-start" id="ng-start">${t('sd.start')}</button></div>`);
+    const desc = () => { $('ng-vdesc').innerHTML = `<b>${vName(vals.v)}</b>: ${vDesc(vals.v)}`; };
+    desc();
+    $('dlg-body').querySelectorAll('.ng .seg').forEach((sg) => sg.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-v]');
+      if (!b) return;
+      sg.querySelectorAll('.chip').forEach((c) => c.classList.toggle('active', c === b));
+      vals[sg.dataset.name] = b.dataset.v;
+      desc();
+    }));
+    $('ng-start').onclick = () => {
+      $('dlg').close();
+      if (game && !game.daily && game.key === comboKey(vals.v, vals.d)) delete saves[game.key];
+      else persist();
+      settings.variant = vals.v; settings.difficulty = vals.d; saveSettings();
+      startNew(vals.v, vals.d).then(renderSide);
+    };
+  }
+
+  // 아직 고르지 않았을 때: 빈 판 + 안내
+  function showPending() {
+    game = null;
+    const grid = $('grid');
+    $('board').className = 'board classic';
+    grid.innerHTML = Array.from({ length: 81 }, (_, i) => {
+      const r = Math.floor(i / 9), c = i % 9;
+      let cls = 'cell';
+      if (c === 8) cls += ' c8'; else if (c % 3 === 2) cls += ' tr';
+      if (r === 8) cls += ' r8'; else if (r % 3 === 2) cls += ' tb';
+      return `<div class="${cls}"><span class="val"></span></div>`;
+    }).join('');
+    cells = [];
+    $('st-time').textContent = fmt(0);
+    $('st-hints').textContent = 0;
+    $('st-progress').style.width = '0%';
+    showOverlay(() => `<h3>${t('tab.sudoku')}</h3><p>${t('sd.pick')}</p><button class="btn primary" data-act="new">${t('side.new')}</button>`);
+    renderSide();
   }
 
   function daily() {
@@ -693,7 +740,7 @@
     const act = e.target.closest('[data-act]')?.dataset.act;
     if (act === 'resume') togglePause(false);
     else if (act === 'restart') restart();
-    else if (act === 'new') startNew(settings.variant, settings.difficulty).then(renderSide);
+    else if (act === 'new') newGameDialog();
     else if (act === 'records') showRecords();
     else if (act === 'retry') startNew(settings.variant, settings.difficulty).then(renderSide);
   });
@@ -836,14 +883,19 @@
   // 체스·장기·바둑 화면(games.js)이 함께 쓰는 기능
   window.SudokuApp = {
     toast, openDialog,
-    refresh() { renderSide(); update(); },
+    refresh() { renderSide(); update(); if (!game && !generating && !$('dlg').open) newGameDialog(); },
   };
 
   /* ---------- 시작 ---------- */
   applyTheme();
   applyLang();
   renderSide();
+  // 예전 버전에서 자동으로 시작만 되고 아무것도 안 한 퍼즐은 이어하지 않고 종류·난이도부터 고르게 함
+  const last = settings.lastKey && saves[settings.lastKey];
+  if (last && !last.started && !last.daily && !(last.history || []).length && !last.hints && !last.mistakes
+      && last.values.every((v, i) => v === last.puzzle.givens[i])) { delete saves[settings.lastKey]; store.set(KEYS.saves, saves); }
   if (!(settings.lastKey && loadSave(settings.lastKey))) {
-    startNew(settings.variant, settings.difficulty).then(renderSide);
+    showPending();
+    if (sudokuActive()) setTimeout(() => { if (!game && sudokuActive() && !$('dlg').open) newGameDialog(); }, 200);
   }
 })();

@@ -618,3 +618,10 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
 .tool.claim .ti { background: var(--accent-soft); color: var(--accent-strong); font-weight: 800; }
 .rec-right { display: flex; align-items: center; gap: 8px; text-align: right; }
 .rv-btn { padding: 6px 10px; font-size: .8rem; }
+/* 더 좁은 휴대폰(갤럭시 폴드 접은 화면 등): 스도쿠 탭은 버튼이 하나 더 있어 이름이 잘리지 않게 더 줄임 */
+@media (max-width: 370px) {
+  .topbar { padding-left: 10px; padding-right: 8px; gap: 4px; }
+  .brand { font-size: .94rem; gap: 6px; letter-spacing: -0.04em; }
+  .logo { width: 28px; height: 28px; padding: 3px; }
+  .top-actions .icon-btn { padding: 4px; min-height: 34px; }
+}

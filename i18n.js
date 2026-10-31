@@ -1,7 +1,7 @@
 /* 화면 문구 번역 (한국어 / English) */
 window.I18N = {
   ko: {
-    appName: '두뇌 게임 놀이터',
+    appName: '두뇌 게임 놀이터', brand: '두뇌 게임 놀이터',
     langName: '한국어',
     'top.install': '앱 설치', 'top.records': '기록', 'top.settings': '설정', 'top.theme': '테마 전환', 'top.lang': '언어 / Language', 'top.daily': '오늘의 퍼즐',
     'pick.new': '새 게임', 'pick.rule': '규칙 보기', rules: '규칙',
@@ -10,7 +10,7 @@ window.I18N = {
     'st.mistakes': '실수', 'st.hints': '힌트', 'st.time': '시간', 'st.pause': '일시정지', 'board': '스도쿠 판',
     'tool.undo': '실행취소', 'tool.erase': '지우기', 'tool.notes': '메모', 'tool.autoNotes': '자동 메모', 'tool.hint': '힌트',
     on: '켬', off: '끔',
-    'side.variants': '스도쿠 종류', 'side.difficulty': '난이도', 'side.new': '새 게임', 'side.daily': '오늘의 퍼즐',
+    'sd.pick': '스도쿠 종류와 난이도를 고르고 시작하세요', 'sd.start': '게임 시작', 'side.variants': '스도쿠 종류', 'side.difficulty': '난이도', 'side.new': '새 게임', 'side.daily': '오늘의 퍼즐',
     'side.saveNote': '진행 중인 게임과 기록은 이 브라우저에 자동 저장됩니다.', 'side.privacy': '개인정보처리방침',
     'side.keys': '단축키',
     'side.keysHtml': '<li><kbd>1</kbd>–<kbd>9</kbd> 숫자 입력 · <kbd>Del</kbd> 지우기</li><li><kbd>←↑→↓</kbd> 이동 · <kbd>N</kbd> 메모 전환 · <kbd>Shift</kbd>+숫자 메모</li><li><kbd>Ctrl</kbd>+<kbd>Z</kbd> 실행취소 · <kbd>H</kbd> 힌트 · <kbd>P</kbd> 일시정지</li>',
@@ -63,7 +63,7 @@ window.I18N = {
   },
 
   en: {
-    appName: 'Brain Game Playground',
+    appName: 'Brain Game Playground', brand: 'Brain Games',
     langName: 'English',
     'top.install': 'Install', 'top.records': 'Records', 'top.settings': 'Settings', 'top.theme': 'Toggle theme', 'top.lang': 'Language / 언어', 'top.daily': 'Daily puzzle',
     'pick.new': 'New', 'pick.rule': 'Show rules', rules: 'Rules',
@@ -72,7 +72,7 @@ window.I18N = {
     'st.mistakes': 'Mistakes', 'st.hints': 'Hints', 'st.time': 'Time', 'st.pause': 'Pause', 'board': 'Sudoku board',
     'tool.undo': 'Undo', 'tool.erase': 'Erase', 'tool.notes': 'Notes', 'tool.autoNotes': 'Auto notes', 'tool.hint': 'Hint',
     on: 'On', off: 'Off',
-    'side.variants': 'Sudoku type', 'side.difficulty': 'Difficulty', 'side.new': 'New game', 'side.daily': 'Daily puzzle',
+    'sd.pick': 'Choose a sudoku type and difficulty to start', 'sd.start': 'Start', 'side.variants': 'Sudoku type', 'side.difficulty': 'Difficulty', 'side.new': 'New game', 'side.daily': 'Daily puzzle',
     'side.saveNote': 'Games and records are saved automatically in this browser.', 'side.privacy': 'Privacy policy',
     'side.keys': 'Keyboard shortcuts',
     'side.keysHtml': '<li><kbd>1</kbd>–<kbd>9</kbd> enter number · <kbd>Del</kbd> erase</li><li><kbd>←↑→↓</kbd> move · <kbd>N</kbd> notes mode · <kbd>Shift</kbd>+number note</li><li><kbd>Ctrl</kbd>+<kbd>Z</kbd> undo · <kbd>H</kbd> hint · <kbd>P</kbd> pause</li>',
