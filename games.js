@@ -130,7 +130,7 @@
   function persist() {
     if (!G || G.pastReview || G.pending) return; // 지난 대국 복기 중에는 저장된 대국을 건드리지 않음
     if (G.over) { delete data.saves[G.id]; saveData(); return; }
-    data.saves[G.id] = { opts: G.opts, moves: G.moves, elapsed: G.elapsed, hints: G.hints, scoring: G.scoring ? { dead: G.scoring.dead } : null };
+    data.saves[G.id] = { started: 1, opts: G.opts, moves: G.moves, elapsed: G.elapsed, hints: G.hints, scoring: G.scoring ? { dead: G.scoring.dead } : null };
     saveData();
   }
 
@@ -170,6 +170,9 @@
     if (!s) return false;
     // 예전 기본값(9줄)으로 시작만 해 둔 바둑은 정식 19줄로 새로 시작
     if (id === 'baduk' && s.opts.size === 9 && !(data.opts.baduk && data.opts.baduk.size) && s.moves.length < 2) { delete data.saves.baduk; return false; }
+    // 예전 버전에서 탭만 열어 자동 시작된 대국(내가 아직 한 수도 안 둠)은 이어하지 않고 난이도부터 고르게 함
+    const mine = !s.opts || s.opts.mode !== 'ai' ? 0 : (s.opts.mySide === DEFS[id].sides[0] ? 0 : 1);
+    if (!s.started && !s.scoring && (s.moves || []).length <= mine) { delete data.saves[id]; saveData(); return false; }
     G = { id, def: DEFS[id], opts: s.opts, moves: s.moves || [], elapsed: s.elapsed || 0, hints: s.hints || 0, over: null, sel: -1, targets: [], hint: null, thinking: false, scoring: null, paused: false };
     try { rebuild(); } catch { return false; }
     if (s.scoring) G.scoring = { dead: s.scoring.dead || [] };
