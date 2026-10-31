@@ -718,6 +718,9 @@
     }
     hideOverlay();
     if (!resumeGame(id)) startGame(id, data.opts[id] || {});
+    // 처음 여는 게임이면 게임 방법을 한 번 보여줌
+    data.seenGuide = data.seenGuide || {};
+    if (!data.seenGuide[id]) { data.seenGuide[id] = 1; saveData(); setTimeout(() => showGuide(id), 300); }
   }
 
   /* ---------- 이벤트 ---------- */
@@ -746,7 +749,8 @@
     hideOverlay();
     startGame(G.id, opts);
   });
-  $('bg-rule').onclick = () => openDialog(`${t('bg.rules')} · ${t(`tab.${G ? G.id : data.game}`)}`, t(`rules.${G ? G.id : data.game}`));
+  const showGuide = (id) => openDialog(`${t('howto')} · ${t(`tab.${id}`)}`, t(`guide.${id}`));
+  $('bg-rule').onclick = () => showGuide(G ? G.id : data.game);
   $('bg-pause').onclick = togglePause;
   $('bg-overlay').addEventListener('click', (e) => {
     const act = e.target.closest('[data-act]')?.dataset.act;

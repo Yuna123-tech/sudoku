@@ -49,7 +49,7 @@
 
       <div class="status">
         <div class="status-row">
-          <div class="status-title"><strong id="st-variant">클래식</strong><span class="sep"></span><span id="st-diff">보통</span><button class="rule-btn" id="btn-rule" data-i18n-title="pick.rule">?</button><span id="st-daily" class="badge hidden" data-i18n="daily">오늘의 퍼즐</span></div>
+          <div class="status-title"><strong id="st-variant">클래식</strong><span class="sep"></span><span id="st-diff">보통</span><button class="howto-btn" id="btn-rule"><b>?</b><span data-i18n="howto">게임 방법</span></button><span id="st-daily" class="badge hidden" data-i18n="daily">오늘의 퍼즐</span></div>
           <div class="status-meta">
             <span class="meta" data-i18n-title="st.mistakes"><span class="lives" id="st-mistakes"></span></span>
             <span class="meta" data-i18n-title="st.hints"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6M10 22h4"/></svg><b id="st-hints">0</b></span>
@@ -115,7 +115,7 @@
       </div>
       <div class="status">
         <div class="status-row">
-          <div class="status-title"><strong id="bg-title"></strong><span class="sep"></span><span id="bg-sub"></span><button class="rule-btn" id="bg-rule" data-i18n-title="pick.rule">?</button></div>
+          <div class="status-title"><strong id="bg-title"></strong><span class="sep"></span><span id="bg-sub"></span><button class="howto-btn" id="bg-rule"><b>?</b><span data-i18n="howto">게임 방법</span></button></div>
           <div class="status-meta">
             <span class="turn-chip" id="bg-turn"></span>
             <span class="meta timer"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b id="bg-time">00:00</b></span>
@@ -157,6 +157,7 @@
   <input type="file" id="import-file" accept="application/json" hidden>
   <script src="sudoku.js"></script>
   <script src="i18n.js"></script>
+  <script src="guide.js"></script>
   <script src="app.js"></script>
   <script src="chess-engine.js"></script>
   <script src="janggi-engine.js"></script>

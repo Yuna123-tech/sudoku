@@ -675,7 +675,9 @@
   $('btn-daily-top').onclick = daily;
   $('btn-rule').onclick = () => {
     const v = game ? game.puzzle.variant : settings.variant;
-    openDialog(`${t('rules')} · ${vName(v)}`, `<p class="rule">${vDesc(v)}</p>`);
+    openDialog(`${t('howto')} · ${t('tab.sudoku')}`, t('guide.sudoku'));
+    const slot = $('g-variant');
+    if (slot) slot.innerHTML = `<b>${vName(v)}</b>: ${vDesc(v)}`;
   };
   $('pick-v').onchange = (e) => choose(e.target.value, settings.difficulty);
   $('pick-d').onchange = (e) => choose(settings.variant, e.target.value);

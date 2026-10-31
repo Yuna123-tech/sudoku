@@ -551,3 +551,23 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
   .layout { padding-bottom: 4px; }
   .controls .tool { gap: 2px; }
 }
+
+/* 게임 방법 버튼과 설명 */
+.howto-btn {
+  flex: none; display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; padding: 3px 9px 3px 4px;
+  border: 0; border-radius: 99px; background: var(--accent-soft); color: var(--accent-strong); font-size: .76rem; font-weight: 800; white-space: nowrap;
+}
+.howto-btn b { width: 17px; height: 17px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-size: .7rem; }
+.status-title > strong { flex: none; }
+.status-title > span:not(.sep) { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.g-goal { margin: 0 0 6px; padding: 10px 12px; border-radius: 12px; background: var(--accent-soft); color: var(--text); line-height: 1.55; font-size: .92rem; }
+.g-h { margin: 14px 0 6px; font-size: .9rem; color: var(--accent-strong); }
+.g-list { margin: 0; padding-left: 18px; line-height: 1.65; font-size: .88rem; color: var(--text); }
+.g-list li { margin-bottom: 3px; }
+.g-p { margin: 0; font-size: .88rem; line-height: 1.6; }
+.g-tip { margin: 14px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border); font-size: .86rem; line-height: 1.55; color: var(--text); }
+@media (max-width: 330px) { .howto-btn { padding: 3px 4px; } .howto-btn span { display: none; } }
+/* 좁은 화면: 대결 방식·난이도는 위쪽 선택 버튼에 이미 보이므로 상태 줄에서는 숨김 */
+@media (max-width: 399px) {
+  #bg-play .status-title .sep, #bg-sub, #sd-play .status-title .sep, #st-diff { display: none; }
+}
