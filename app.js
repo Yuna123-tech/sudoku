@@ -70,6 +70,7 @@
     renderSide();
     update();
     if (overlayFn && !$('overlay').classList.contains('hidden')) showOverlay(overlayFn);
+    if (window.BoardGames) window.BoardGames.refresh();
   }
   const comboKey = (v, d) => `${v}-${d}`;
   const fmt = (s) => {
@@ -267,7 +268,7 @@
   function renderSide() {
     const v = game ? game.puzzle.variant : settings.variant;
     const d = game ? game.puzzle.difficulty : settings.difficulty;
-    document.documentElement.dataset.variant = v;
+    if (!document.body.dataset.game || document.body.dataset.game === 'sudoku') document.documentElement.dataset.variant = v;
     $('st-variant').textContent = vName(v);
     $('st-diff').textContent = dName(d);
     $('st-daily').classList.toggle('hidden', !(game && game.daily));
@@ -667,7 +668,7 @@
   $('btn-pause').onclick = () => togglePause();
   $('btn-new').onclick = newGame;
   $('btn-daily').onclick = daily;
-  $('btn-records').onclick = showRecords;
+  $('btn-records').onclick = () => (window.BoardGames && window.BoardGames.active() ? window.BoardGames.showRecords() : showRecords());
   $('btn-settings').onclick = showSettings;
   $('btn-lang').onclick = () => setLang(settings.lang === 'ko' ? 'en' : 'ko');
   $('btn-new-m').onclick = newGame;
@@ -734,8 +735,9 @@
     e.target.value = '';
   });
 
+  const sudokuActive = () => !document.body.dataset.game || document.body.dataset.game === 'sudoku';
   document.addEventListener('keydown', (e) => {
-    if ($('dlg').open || !game) return;
+    if ($('dlg').open || !game || !sudokuActive()) return;
     const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
     if (m && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); return input(+m[1], e.shiftKey); }
     const k = e.key.toLowerCase();
@@ -754,7 +756,7 @@
   });
 
   setInterval(() => {
-    if (!canPlay() || document.visibilityState !== 'visible') return;
+    if (!canPlay() || !sudokuActive() || document.visibilityState !== 'visible') return;
     game.elapsed++;
     $('st-time').textContent = fmt(game.elapsed);
     if (game.elapsed % 5 === 0) persist();
@@ -824,6 +826,12 @@
     const isAndroid = /android/i.test(navigator.userAgent);
     const steps = isIOS ? t('installIos') : isAndroid ? t('installAndroid') : t('installPc');
     openDialog(t('installTitle'), steps + t('installNote'));
+  };
+
+  // 체스·장기·바둑 화면(games.js)이 함께 쓰는 기능
+  window.SudokuApp = {
+    toast, openDialog,
+    refresh() { renderSide(); update(); },
   };
 
   /* ---------- 시작 ---------- */

@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-game="sudoku">
   <header class="topbar">
     <div class="brand">
       <span class="logo" aria-hidden="true"><i></i><i></i><i></i><i></i><b>9</b><i></i><i></i><i></i><i></i></span>
@@ -31,8 +31,15 @@
     </nav>
   </header>
 
+  <nav class="game-tabs" id="game-tabs">
+    <button data-game="sudoku" class="active" data-i18n="tab.sudoku">스도쿠</button>
+    <button data-game="chess" data-i18n="tab.chess">체스</button>
+    <button data-game="janggi" data-i18n="tab.janggi">장기</button>
+    <button data-game="baduk" data-i18n="tab.baduk">바둑</button>
+  </nav>
+
   <main class="layout">
-    <section class="play">
+    <section class="play" id="sd-play">
       <div class="picker">
         <select id="pick-v" data-i18n-aria="side.variants"></select>
         <select id="pick-d" data-i18n-aria="side.difficulty"></select>
@@ -75,7 +82,7 @@
       </div>
     </section>
 
-    <aside class="side">
+    <aside class="side" id="sd-side">
       <div class="card">
         <h2 data-i18n="side.variants">스도쿠 종류</h2>
         <div class="variants" id="variants"></div>
@@ -95,6 +102,45 @@
         <ul data-i18n-html="side.keysHtml"></ul>
       </div>
     </aside>
+
+    <!-- 체스·장기·바둑 -->
+    <section class="play" id="bg-play">
+      <div class="picker bg-picker">
+        <div class="bg-sum" id="bg-sum"></div>
+        <button class="btn primary" id="bg-new" data-i18n="bg.newGame">새 대국</button>
+      </div>
+      <div class="status">
+        <div class="status-row">
+          <div class="status-title"><strong id="bg-title"></strong><span class="sep"></span><span id="bg-sub"></span><button class="rule-btn" id="bg-rule" data-i18n-title="pick.rule">?</button></div>
+          <div class="status-meta">
+            <span class="turn-chip" id="bg-turn"></span>
+            <span class="meta timer"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b id="bg-time">00:00</b></span>
+            <button class="pause-btn" id="bg-pause" data-i18n-title="st.pause"><svg class="ico" viewBox="0 0 24 24"><rect x="7" y="5" width="3.5" height="14" rx="1"/><rect x="13.5" y="5" width="3.5" height="14" rx="1"/></svg></button>
+          </div>
+        </div>
+        <div class="bg-info" id="bg-info"></div>
+      </div>
+      <div class="board-wrap bg-wrap" id="bg-wrap">
+        <div class="board-box">
+          <svg class="bg-board" id="bg-board" viewBox="0 0 8 8"></svg>
+          <div class="overlay hidden" id="bg-overlay"><div class="overlay-box" id="bg-overlay-content"></div></div>
+        </div>
+      </div>
+      <div class="controls"><div class="tools bg-tools" id="bg-tools"></div></div>
+    </section>
+
+    <aside class="side" id="bg-side">
+      <div class="card">
+        <h2 id="bg-side-title"></h2>
+        <div class="bg-rules" id="bg-rules"></div>
+      </div>
+      <div class="card">
+        <h2 data-i18n="bg.mode">대결 방식</h2>
+        <p class="rule" id="bg-side-sum"></p>
+        <div class="actions one"><button class="btn primary" id="bg-side-new" data-i18n="bg.newGame">새 대국</button></div>
+        <p class="hint-text"><span data-i18n="side.saveNote">진행 중인 게임과 기록은 이 브라우저에 자동 저장됩니다.</span></p>
+      </div>
+    </aside>
   </main>
 
   <dialog id="dlg">
@@ -108,5 +154,9 @@
   <script src="sudoku.js"></script>
   <script src="i18n.js"></script>
   <script src="app.js"></script>
+  <script src="chess-engine.js"></script>
+  <script src="janggi-engine.js"></script>
+  <script src="go-engine.js"></script>
+  <script src="games.js"></script>
 </body>
 </html>

@@ -13,6 +13,9 @@
 [data-variant="evenodd"]   { --v-l: #6c7d47; --v-d: #b2c38a; }
 [data-variant="centerdot"] { --v-l: #ad5c71; --v-d: #e39cad; }
 [data-variant="asterisk"]  { --v-l: #5a67a3; --v-d: #a3addf; }
+[data-variant="chess"]     { --v-l: #56708f; --v-d: #9db3cf; }
+[data-variant="janggi"]    { --v-l: #a3563c; --v-d: #e09a7f; }
+[data-variant="baduk"]     { --v-l: #3d7466; --v-d: #86c2b2; }
 
 :root {
   --bg: #f2eee6;
@@ -428,3 +431,112 @@ h3.sub { font-size: .88rem; margin: 16px 0 8px; color: var(--muted); }
 @keyframes bar-in { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
 .update-bar .btn { padding: 8px 14px; }
 .update-close { border: 0; background: transparent; color: var(--muted); width: 30px; height: 30px; border-radius: 50%; padding: 0; }
+
+
+/* =========================================================
+   게임 탭 (스도쿠 · 체스 · 장기 · 바둑)
+   ========================================================= */
+.game-tabs {
+  position: relative; z-index: 1; flex: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+  width: calc(100% - 24px); max-width: 520px; margin: 0 auto 8px; padding: 4px;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;
+}
+.game-tabs button {
+  border: 0; background: transparent; border-radius: 10px; padding: 7px 4px; font-size: .9rem; font-weight: 700; color: var(--muted);
+}
+.game-tabs button.active { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow-sm); }
+
+body:not([data-game="sudoku"]) #sd-play, body:not([data-game="sudoku"]) #sd-side,
+body:not([data-game="sudoku"]) #btn-daily-top { display: none !important; }
+body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([data-game]) #bg-play, body:not([data-game]) #bg-side { display: none !important; }
+
+/* 대국 화면 */
+.bg-picker { grid-template-columns: 1fr auto; align-items: center; }
+.bg-sum {
+  min-width: 0; font-size: .84rem; font-weight: 600; color: var(--muted); background: var(--surface); border: 1px solid var(--border);
+  border-left: 4px solid var(--accent); border-radius: 12px; padding: 9px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.turn-chip { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--text); font-size: .86rem; white-space: nowrap; }
+.turn-chip.thinking { color: var(--accent-strong); }
+.turn-chip i { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--line-thick); }
+.dot-chess-w, .dot-baduk-2 { background: #fbfaf6; }
+.dot-chess-b, .dot-baduk-1 { background: #26251f; }
+.dot-janggi-c { background: #2c6e8f; border-color: #2c6e8f !important; }
+.dot-janggi-h { background: #b5392c; border-color: #b5392c !important; }
+.bg-info { min-height: 1.3em; font-size: .82rem; color: var(--muted); font-weight: 600; display: flex; justify-content: space-between; gap: 8px; white-space: nowrap; overflow: hidden; }
+.bg-info .cap-w, .bg-info .cap-b { font-size: 1rem; letter-spacing: -2px; font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "DejaVu Sans", serif; }
+.bg-info .cap-w { color: var(--text); }
+.bg-info .cap-b { color: var(--muted); }
+
+.bg-wrap { aspect-ratio: var(--ar, 1); }
+.bg-wrap .board-box { width: min(100cqw, calc(100cqh * var(--ar, 1))); height: auto; aspect-ratio: var(--ar, 1); }
+.bg-board { width: 100%; height: 100%; display: block; border-radius: 12px; box-shadow: var(--shadow); touch-action: manipulation; user-select: none; cursor: pointer; }
+
+/* 체스 */
+.sq-l { fill: #efe2c8; } .sq-d { fill: #b98d68; }
+.sq-last { fill: color-mix(in srgb, #e3c34d 55%, #efe2c8); }
+.sq-d.sq-last { fill: color-mix(in srgb, #d0a93a 60%, #b98d68); }
+.sq-sel { fill: color-mix(in srgb, var(--accent) 55%, #efe2c8) !important; }
+.sq-hint { fill: color-mix(in srgb, #4aa3d8 55%, #efe2c8) !important; }
+.check-glow { fill: rgba(214, 64, 52, .55); }
+.coord { font-size: .17px; font-weight: 700; fill: #8a6a4f; font-family: system-ui, sans-serif; }
+.cp { font-size: .86px; text-anchor: middle; dominant-baseline: middle; font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "DejaVu Sans", "Apple Symbols", serif; paint-order: stroke; stroke-linejoin: round; }
+.cw { fill: #fbf8f0; stroke: #2a251d; stroke-width: .035px; }
+.cb { fill: #23201b; stroke: #f5efe3; stroke-width: .02px; }
+.tgt { fill: rgba(40, 40, 30, .28); }
+.tgt-cap { fill: none; stroke: rgba(40, 40, 30, .32); stroke-width: .08px; }
+
+/* 장기 */
+.jg-bg { fill: #e6c48f; }
+.jg-l { stroke: #6e4d2c; stroke-width: .035px; }
+.jg-last { fill: rgba(250, 230, 120, .55); }
+.jg-hint { fill: none; stroke: #2f8fd0; stroke-width: .07px; }
+.jp { fill: #fbf3e2; stroke-width: .05px; filter: drop-shadow(0 .03px .04px rgba(0,0,0,.35)); }
+.jp-c { stroke: #2c6e8f; } .jp-h { stroke: #b5392c; }
+.jp-sel { fill: color-mix(in srgb, var(--accent) 35%, #fbf3e2); stroke-width: .08px; }
+.jp-check { fill: #f7c9c2; }
+.jt { text-anchor: middle; font-weight: 800; font-family: "Noto Serif CJK KR", "Noto Serif KR", "Batang", "AppleMyungjo", serif; pointer-events: none; }
+.jt-c { fill: #1f5d7d; } .jt-h { fill: #a52f23; }
+.bg-board .tgt { fill: rgba(30, 30, 20, .35); }
+
+/* 바둑 */
+.go-bg { fill: #ddb877; }
+.go-l { stroke: #5b4426; stroke-width: .035px; }
+.go-star { fill: #5b4426; }
+.stone { stroke-width: .025px; }
+.sb { fill: #22211e; stroke: #000; }
+.sw { fill: #f8f6f0; stroke: #9d9686; }
+.s-dead { opacity: .4; }
+.terr.tb { fill: #22211e; } .terr.tw { fill: #f8f6f0; stroke: #6b6457; stroke-width: .02px; }
+.go-last { fill: none; stroke-width: .06px; }
+.go-last.on-b { stroke: #f8f6f0; } .go-last.on-w { stroke: #22211e; }
+.go-hint { fill: rgba(47, 143, 208, .35); stroke: #2f8fd0; stroke-width: .05px; }
+
+.bg-tools { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
+.tools.scoring { display: flex; align-items: center; gap: 8px; }
+.score-help { flex: 1; margin: 0; font-size: .82rem; color: var(--muted); font-weight: 600; }
+.bg-rules .steps { font-size: .86rem; line-height: 1.6; color: var(--muted); padding-left: 18px; margin: 0; }
+.actions.one { grid-template-columns: 1fr; }
+
+/* 새 대국 설정 */
+.ng label { display: block; font-size: .8rem; font-weight: 700; color: var(--muted); margin: 12px 0 6px; }
+.ng label small { font-weight: 500; }
+.ng .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.ng .seg .chip { padding: 8px 12px; }
+.ng .seg .chip.active { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-strong); font-weight: 800; }
+.ng[data-mode="pvp"] .ai-only, .ng[data-mode="ai"] .pvp-only { display: none; }
+.ng-start { width: 100%; margin-top: 16px; }
+.promo-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.promo-btn { font-size: 2.4rem; padding: 6px 0; border: 1px solid var(--border); border-radius: 12px; background: #efe2c8; font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "DejaVu Sans", serif; }
+.promo-btn.pw { color: #fbf8f0; -webkit-text-stroke: 1px #2a251d; }
+.promo-btn.pb { color: #23201b; }
+@media (max-width: 359px), (max-height: 600px) and (orientation: portrait) {
+  .game-tabs { margin-bottom: 4px; }
+  .game-tabs button { padding: 5px 2px; font-size: .82rem; }
+}
+@media (orientation: landscape) and (max-height: 599px) {
+  .game-tabs { margin-bottom: 4px; padding: 2px; border-radius: 11px; }
+  .game-tabs button { padding: 3px 2px; font-size: .8rem; border-radius: 8px; }
+  .layout { padding-bottom: 4px; }
+  .controls .tool { gap: 2px; }
+}

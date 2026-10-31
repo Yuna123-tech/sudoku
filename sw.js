@@ -4,6 +4,7 @@
 const CACHE = 'sudoku-v8'; // 배포할 때 scripts/build-web.mjs가 커밋 번호로 자동 교체
 const ASSETS = [
   './', 'index.html', 'style.css', 'app.js', 'sudoku.js', 'i18n.js', 'worker.js', 'manifest.webmanifest',
+  'games.js', 'chess-engine.js', 'janggi-engine.js', 'go-engine.js', 'ai-worker.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',
 ];
 
