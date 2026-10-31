@@ -27,9 +27,9 @@
 ## 배포 (자동)
 - `main` 브랜치에 푸시하면:
   - `.github/workflows/deploy.yml` → GitHub Pages 사이트 갱신
-  - `.github/workflows/android.yml` → 안드로이드 앱 빌드
-    - 시험용 APK: Releases의 `android-latest`에 올라감 (휴대폰에 직접 설치해 시험)
-    - 스토어용 AAB: 저장소 Secrets에 서명 열쇠가 있을 때만 만들어짐
+  - `.github/workflows/android.yml` → 안드로이드 앱 빌드 점검
+    - 시험용 APK는 소유자 요청으로 만들지 않음 (평소에는 사이트에서 홈 화면 설치로 사용)
+    - 스토어용 AAB: 저장소 Secrets에 서명 열쇠가 있을 때만 만들어져 Actions 실행 결과(Artifacts)에 30일 보관
       (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`)
 - 버전 번호는 Actions 실행 번호로 자동 증가 (`1.0.<번호>`).
 

@@ -42,7 +42,6 @@
 ## 안드로이드 앱 (광고 포함)
 - 같은 게임 파일을 앱 안에 넣은 Capacitor 앱입니다. 광고(구글 애드몹)는 **앱에만** 나오고 웹사이트에는 없습니다.
 - `main`에 올리면 GitHub Actions가 앱 파일을 자동으로 만듭니다.
-- 시험용 앱 받기: [Releases → android-latest](https://github.com/Yuna123-tech/sudoku/releases/tag/android-latest)
 - 수정 방법·파일 구조는 [`CLAUDE.md`](CLAUDE.md) 참고
 
 ## 구글 플레이 스토어 등록
