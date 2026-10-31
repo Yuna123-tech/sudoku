@@ -14,6 +14,20 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="두뇌 게임">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <script>
+    /* 실제로 보이는 화면 높이에 맞춤 (카카오톡 등 앱 안 브라우저·주소창이 있는 브라우저에서 아래가 잘리지 않게) */
+    (function () {
+      var set = function () {
+        var h = window.visualViewport && window.visualViewport.scale === 1 ? Math.min(window.innerHeight, window.visualViewport.height) : window.innerHeight;
+        document.documentElement.style.setProperty('--app-h', Math.round(h) + 'px');
+      };
+      set();
+      window.addEventListener('resize', set);
+      window.addEventListener('orientationchange', function () { setTimeout(set, 300); });
+      window.addEventListener('pageshow', set);
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', set);
+    })();
+  </script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body data-game="sudoku">

@@ -19,9 +19,9 @@
   ];
 
   const DIFFICULTIES = [
-    { id: 'beginner', name: '입문', clues: 46, killer: 34, singles: true },
-    { id: 'easy', name: '쉬움', clues: 38, killer: 26, singles: true },
-    { id: 'medium', name: '보통', clues: 32, killer: 18, singles: false },
+    { id: 'beginner', name: '입문', clues: 48, killer: 40, singles: true },
+    { id: 'easy', name: '쉬움', clues: 42, killer: 32, singles: true },
+    { id: 'medium', name: '보통', clues: 34, killer: 22, singles: false },
     { id: 'hard', name: '어려움', clues: 27, killer: 10, singles: false },
     { id: 'expert', name: '전문가', clues: 22, killer: 0, singles: false },
   ];
