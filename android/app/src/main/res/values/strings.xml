@@ -4,6 +4,4 @@
     <string name="title_activity_main">스도쿠 놀이터</string>
     <string name="package_name">io.github.yuna123tech.sudoku</string>
     <string name="custom_url_scheme">io.github.yuna123tech.sudoku</string>
-    <!-- 애드몹 앱 ID: 지금은 구글 시험용 ID. 애드몹 계정을 만들면 내 앱 ID로 교체 -->
-    <string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
 </resources>

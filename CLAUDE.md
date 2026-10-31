@@ -5,8 +5,9 @@
 
 ## 무엇인가
 - 8가지 종류 × 5단계 난이도 스도쿠 게임. 한국어/영어 지원.
-- **웹사이트**: https://yuna123-tech.github.io/sudoku/ (광고 없음, PWA로 홈 화면 설치·오프라인 가능)
-- **안드로이드 앱**: 같은 게임 파일을 Capacitor로 감싼 앱. 앱에만 구글 애드몹 광고.
+- **웹사이트**: https://yuna123-tech.github.io/sudoku/ (PWA로 홈 화면 설치·오프라인 가능)
+- **안드로이드 앱**: 같은 게임 파일을 Capacitor로 감싼 앱 (아직 스토어 미등록).
+- **광고 없음, 완전 무료**: 소유자가 학급에 무료로 공유하기로 결정함. 광고를 넣자는 요청이 다시 오기 전에는 광고를 추가하지 않기.
 - 서버·데이터베이스 없음. 진행 중인 게임과 기록은 이용자 기기의 localStorage에 저장.
 
 ## 파일 구조
@@ -17,7 +18,6 @@
 | `sudoku.js` | 퍼즐 엔진: 변형 규칙, 풀이기, 생성기(해답 유일성 보장). 브라우저·워커·Node 공용 |
 | `worker.js` | 퍼즐 생성을 웹 워커에서 실행 |
 | `i18n.js` | 화면 문구 번역 (ko/en). 새 문구는 반드시 두 언어 모두 추가 |
-| `ads.js` | 앱에서만 광고 표시 (웹에서는 아무것도 안 함). 광고 단위 ID가 여기에 있음 |
 | `sw.js`, `manifest.webmanifest`, `icons/` | PWA(오프라인·설치). 파일을 추가하면 `sw.js`의 ASSETS 목록과 캐시 이름(`sudoku-vN`)도 갱신 |
 | `privacy.html` | 개인정보처리방침 (한/영) |
 | `scripts/build-web.mjs` | 게임 파일만 골라 `_site`(사이트) 또는 `www`(앱)로 복사. 새 웹 파일을 만들면 여기 목록에도 추가 |
@@ -32,11 +32,6 @@
     - 스토어용 AAB: 저장소 Secrets에 서명 열쇠가 있을 때만 만들어져 Actions 실행 결과(Artifacts)에 30일 보관
       (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`)
 - 버전 번호는 Actions 실행 번호로 자동 증가 (`1.0.<번호>`).
-
-## 광고 설정 (현재 구글 시험용 ID)
-애드몹 계정을 만든 뒤 아래 두 곳을 실제 ID로 바꿔야 수익이 생김:
-1. `android/app/src/main/res/values/strings.xml`의 `admob_app_id` (앱 ID, `~`가 들어간 것)
-2. `ads.js`의 `AD_UNITS` (배너·전면 광고 단위 ID, `/`가 들어간 것)
 
 ## 로컬에서 확인
 ```bash

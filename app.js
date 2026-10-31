@@ -108,7 +108,6 @@
   }
 
   async function startNew(variant, difficulty, opts = {}) {
-    window.SudokuAds.beforeNewGame();
     generating = true;
     showOverlay(() => `<div class="spinner"></div><p>${t('generating')}</p>`);
     let puzzle;
@@ -481,7 +480,6 @@
       ? t('hintNoRank')
       : `${rank === 1 && ranked.length > 1 ? t('newBest') : ''}${t('rankMsg', { rank, n: ranked.length })}${rank > 1 ? ` · ${t('bestT', { t: fmt(ranked[0].time) })}` : ''}`);
     if (game.daily && !records.daily[game.daily]) records.daily[game.daily] = game.elapsed;
-    window.SudokuAds.onWin();
     saveRecords();
     delete saves[game.key];
     store.set(KEYS.saves, saves);

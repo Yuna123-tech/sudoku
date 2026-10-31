@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 const out = process.argv[2] || 'www';
 const FILES = [
-  'index.html', 'style.css', 'app.js', 'sudoku.js', 'i18n.js', 'ads.js', 'worker.js', 'sw.js',
+  'index.html', 'style.css', 'app.js', 'sudoku.js', 'i18n.js', 'worker.js', 'sw.js',
   'manifest.webmanifest', 'privacy.html', '.nojekyll', 'icons',
 ];
 const EXTRA = { _site: ['store'] }; // 사이트에는 매니페스트 스크린샷용 store 폴더도 포함

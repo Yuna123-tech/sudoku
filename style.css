@@ -89,7 +89,7 @@ body {
   /* 한 화면에 고정: 페이지 자체는 스크롤하지 않음 */
   height: 100vh; height: 100dvh; overflow: hidden; overscroll-behavior: none;
   display: flex; flex-direction: column; position: relative;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) calc(env(safe-area-inset-bottom) + var(--ad-h, 0px)) env(safe-area-inset-left);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   transition: background-color .3s;
 }
 /* 은은한 종이 질감 */
@@ -361,7 +361,7 @@ h3.sub { font-size: .88rem; margin: 16px 0 8px; color: var(--muted); }
 .steps { margin: 0 0 12px; padding-left: 20px; line-height: 2; }
 .kbdish { display: inline-block; background: var(--surface-2); border-radius: 6px; padding: 0 6px; }
 .toast {
-  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom) + var(--ad-h, 0px)); transform: translateX(-50%);
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%);
   background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: .88rem; font-weight: 600; z-index: 100;
   box-shadow: var(--shadow); max-width: calc(100vw - 32px); text-align: center;
 }
@@ -383,7 +383,7 @@ h3.sub { font-size: .88rem; margin: 16px 0 8px; color: var(--muted); }
   .layout { padding-bottom: 8px; }
   .play {
     max-width: none; display: grid; justify-content: center; column-gap: 18px; row-gap: 8px;
-    grid-template-columns: min(55vw, calc(100dvh - 64px - env(safe-area-inset-top) - env(safe-area-inset-bottom) - var(--ad-h, 0px))) minmax(0, 380px);
+    grid-template-columns: min(55vw, calc(100dvh - 64px - env(safe-area-inset-top) - env(safe-area-inset-bottom))) minmax(0, 380px);
     grid-template-rows: auto auto 1fr;
     grid-template-areas: "board picker" "board status" "board controls";
   }
