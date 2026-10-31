@@ -57,6 +57,7 @@
       ]) +
       H('특별 규칙') + UL([
         '<b>장군</b>: 궁이 공격받는 상태. 반드시 피하거나 막아야 해요.',
+        '궁도 상대 말을 잡을 수 있지만, <b>잡은 자리가 다른 상대 말의 공격을 받는 곳이면</b> 잡을 수 없어요(스스로 장군을 받는 수는 금지). 궁은 궁성 밖으로 나갈 수 없어요.',
         '<b>한수쉼</b>: 장군이 아닐 때는 한 번 쉬어 갈 수 있어요.',
         '<b>빅장</b>: 두 궁이 사이에 아무것도 없이 마주 보는 것. 상대가 피하지 않으면 <b>점수로 승부</b>를 내요.',
         '<b>점수</b>: 차 13 · 포 7 · 마 5 · 상 3 · 사 3 · 졸 2점. 한(후수)은 1.5점 덤을 받아요. 200수가 되거나 같은 모양이 3번 나와도 점수로 판정해요.',
@@ -95,6 +96,15 @@
         '<b>자유룰</b>을 고르면 금지 없이 5개 이상이면 이겨요. (새 대국 설정)',
       ]) +
       TIP('상대가 <b>열린 3</b>을 만들면 바로 막으세요! 내가 이기려면 <b>4와 3을 한 번에</b> 만드는 자리(4·3)를 노리세요.'),
+    'guide.othello': GOAL('게임이 끝났을 때 판 위에 <b>내 돌이 더 많으면</b> 이겨요. <b>흑</b>이 먼저 둬요.') +
+      H('두는 방법') + UL([
+        '가운데 4개(흑 2, 백 2)로 시작해요.',
+        '상대 돌을 <b>내 돌 두 개 사이에 끼우도록</b> 놓으면, 끼인 상대 돌이 모두 <b>뒤집혀</b> 내 돌이 돼요. 가로·세로·대각선 모두 돼요.',
+        '<b>하나라도 뒤집을 수 있는 곳에만</b> 둘 수 있어요. 둘 수 있는 곳은 판에 작은 점으로 표시돼요.',
+        '둘 곳이 없으면 <b>자동으로 차례가 넘어가요</b>(패스).',
+        '둘 다 둘 곳이 없거나 판이 다 차면 끝나요. 돌 개수가 같으면 무승부예요.',
+      ]) +
+      TIP('<b>네 모서리</b>는 절대 뒤집히지 않아서 아주 중요해요. 모서리 바로 옆 칸은 상대에게 모서리를 내줄 수 있으니 조심! 초반에는 많이 뒤집기보다 <b>상대가 둘 곳을 줄이는</b> 게 좋아요.'),
   };
 
   const en = {
@@ -112,7 +122,7 @@
       TIP('Move a center pawn, develop knights and bishops early, and <b>castle</b> to keep your king safe.'),
     'guide.janggi': GOAL('Trap the enemy <b>general</b> so it cannot escape (checkmate) to win. <b>Cho (blue)</b> moves first.') +
       H('How pieces move') + UL(['<b>General</b> & <b>Guards 士</b>: one step along the lines, only inside the <b>palace</b> (the 9 points with diagonals).', '<b>Chariot 車</b>: any distance across or down. The strongest piece.', '<b>Cannon 包</b>: must <b>jump over exactly one piece</b>. Cannons can never jump or capture cannons.', '<b>Horse 馬</b>: one step straight, then one diagonal. Blocked if the first point is occupied.', '<b>Elephant 象</b>: one step straight, then two diagonal. Blocked by any piece on its path.', '<b>Soldier 卒/兵</b>: one step forward or sideways, never back. Diagonal forward inside the enemy palace.', 'Inside a palace, chariots, cannons and soldiers can also follow the diagonals.']) +
-      H('Special rules') + UL(['<b>Janggun</b> (check): your general is attacked — escape or block.', '<b>Pass</b>: allowed when you are not in check.', '<b>Bikjang</b>: generals facing each other with nothing between. If not broken, the game is decided on <b>points</b>.', '<b>Points</b>: chariot 13 · cannon 7 · horse 5 · elephant 3 · guard 3 · soldier 2, Han +1.5. Also used after 200 moves or threefold repetition.', '<b>Setup</b>: choose one of 4 horse/elephant arrangements.']) +
+      H('Special rules') + UL(['<b>Janggun</b> (check): your general is attacked — escape or block.', 'The general can capture, but not a piece that is protected (you may not move into check), and never outside the palace.', '<b>Pass</b>: allowed when you are not in check.', '<b>Bikjang</b>: generals facing each other with nothing between. If not broken, the game is decided on <b>points</b>.', '<b>Points</b>: chariot 13 · cannon 7 · horse 5 · elephant 3 · guard 3 · soldier 2, Han +1.5. Also used after 200 moves or threefold repetition.', '<b>Setup</b>: choose one of 4 horse/elephant arrangements.']) +
       TIP('Don’t give away your chariots. Cannons need a piece to jump over — give them a “bridge”.'),
     'guide.baduk': GOAL('Win by having more <b>territory</b> (empty points you surround) plus <b>captured stones</b>. Black plays first; White gets <b>6.5 komi</b>.') +
       H('How to play') + UL(['Take turns placing a stone on an <b>intersection</b>. Stones never move.', 'Empty points next to a group are its <b>liberties</b>. With one left it is in <b>atari</b>.', 'Fill all of a group’s liberties to <b>capture</b> it.']) +
@@ -123,6 +133,9 @@
       H('How to play') + UL(['Take turns placing stones on intersections. Nothing is captured.', 'A full board is a draw.']) +
       H('Renju rule (Black only)') + UL(['Black moves first and has an advantage, so Black may not play these points (marked <b style="color:#d2402f">×</b>):', '<b>Double three</b>: a move making two open threes at once', '<b>Double four</b>: a move making two fours at once', '<b>Overline</b>: six or more in a row (Black must make <b>exactly five</b>; White may make more)', 'A move that makes five always wins.', 'Choose <b>Freestyle</b> for no restrictions (five or more wins).']) +
       TIP('Block an <b>open three</b> right away! To win, aim for a move that makes a <b>four and a three</b> at once.'),
+    'guide.othello': GOAL('Have <b>more discs</b> than your opponent when the game ends. <b>Black</b> moves first.') +
+      H('How to play') + UL(['The game starts with four discs in the center.', 'Place a disc so that opponent discs are <b>trapped between two of yours</b> — they all <b>flip</b> to your color (across, down or diagonally).', 'Every move must flip at least one disc. Legal moves are shown as small dots.', 'With no legal move you <b>pass automatically</b>.', 'When neither side can move, count the discs. Equal counts are a draw.']) +
+      TIP('<b>Corners</b> can never be flipped — grab them! Avoid the squares next to an empty corner. Early on, limit your opponent’s moves rather than flipping many discs.'),
   };
   Object.assign(window.I18N.ko, ko);
   Object.assign(window.I18N.en, en);

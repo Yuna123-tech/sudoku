@@ -17,6 +17,7 @@
 [data-variant="janggi"]    { --v-l: #a3563c; --v-d: #e09a7f; }
 [data-variant="baduk"]     { --v-l: #3d7466; --v-d: #86c2b2; }
 [data-variant="omok"]      { --v-l: #7a5a9c; --v-d: #b9a0d6; }
+[data-variant="othello"]   { --v-l: #2b7a4b; --v-d: #7cc79c; }
 
 :root {
   --bg: #f2eee6;
@@ -136,7 +137,7 @@ button { cursor: pointer; }
 }
 .play {
   flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; justify-content: space-evenly; gap: 10px;
-  width: 100%; max-width: min(620px, max(280px, calc(100dvh - 300px)));
+  width: 100%; max-width: min(820px, max(280px, calc(100dvh - 300px)));
 }
 .side { display: none; }
 
@@ -370,15 +371,26 @@ h3.sub { font-size: .88rem; margin: 16px 0 8px; color: var(--muted); }
   box-shadow: var(--shadow); max-width: calc(100vw - 32px); text-align: center;
 }
 
-/* ---------- 넓은 화면 (PC, 가로 태블릿) ---------- */
+/* ---------- 넓은 화면 (PC, 가로 태블릿): 옆 창 없이 큰 판은 왼쪽, 조작은 오른쪽 ---------- */
 @media (min-width: 900px) and (min-height: 600px) {
   .top-actions { gap: 4px; }
   .top-actions .lbl { display: inline; }
   .icon-btn { padding: 8px 12px; }
-  .side { display: flex; flex-direction: column; justify-content: center; flex: none; width: 320px; overflow-y: auto; padding-bottom: 4px; }
-  .picker { display: none; }
-  #bg-play .bg-picker { display: grid; }
-  .play { flex: 0 1 auto; max-width: max(380px, calc(100dvh - 230px)); }
+  .side { display: none !important; }
+  .layout { padding-bottom: 16px; }
+  .play {
+    max-width: none; display: grid; justify-content: center; align-content: stretch; column-gap: 32px; row-gap: 14px;
+    grid-template-columns: min(calc(100vw - 470px), calc(100dvh - 150px)) minmax(0, 400px);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas: "board picker" "board status" "board controls";
+  }
+  .picker { grid-area: picker; display: grid; }
+  .status { grid-area: status; }
+  .board-wrap { grid-area: board; min-height: 0; height: 100%; aspect-ratio: auto; }
+  .controls { grid-area: controls; min-height: 0; justify-content: flex-start; gap: 16px; }
+  .numpad { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .num { height: clamp(56px, 9dvh, 88px); flex-direction: row; gap: 8px; }
+  .num b { font-size: 1.8rem; }
 }
 
 /* ---------- 휴대폰 가로 모드: 판은 왼쪽, 조작은 오른쪽 ---------- */
@@ -439,7 +451,7 @@ h3.sub { font-size: .88rem; margin: 16px 0 8px; color: var(--muted); }
    게임 탭 (스도쿠 · 체스 · 장기 · 바둑)
    ========================================================= */
 .game-tabs {
-  position: relative; z-index: 1; flex: none; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
+  position: relative; z-index: 1; flex: none; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
   width: calc(100% - 24px); max-width: 520px; margin: 0 auto 8px; padding: 4px;
   background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;
 }
@@ -518,6 +530,14 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
 .terr.tb { fill: #22211e; } .terr.tw { fill: #f8f6f0; stroke: #6b6457; stroke-width: .02px; }
 .go-last { fill: none; stroke-width: .06px; }
 .go-last.on-b { stroke: #f8f6f0; } .go-last.on-w { stroke: #22211e; }
+.oth-bg { fill: #2f8a57; }
+.oth-l { stroke: #17462b; stroke-width: .03px; }
+.oth-dot { fill: #17462b; }
+.disc { filter: url(#f-stone); }
+.oth-last { fill: #e0453a; }
+.oth-move { opacity: .55; pointer-events: none; }
+.oth-move.mb { fill: #1b1a17; } .oth-move.mw { fill: #fbfaf6; }
+.dot-othello-1 { background: #26251f; } .dot-othello-2 { background: #fbfaf6; }
 .win-ring { fill: none; stroke: #e0453a; stroke-width: .08px; }
 .ban { stroke: #d2402f; stroke-width: .07px; stroke-linecap: round; opacity: .8; pointer-events: none; }
 .dot-omok-1 { background: #26251f; } .dot-omok-2 { background: #fbfaf6; }
@@ -587,3 +607,5 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
   body[data-game="baduk"] #bg-wrap, body[data-game="omok"] #bg-wrap { width: calc(100% + 16px); margin: 0 -8px; }
   body[data-game="baduk"] .bg-board, body[data-game="omok"] .bg-board { border-radius: 8px; }
 }
+
+@media (max-width: 380px) { .game-tabs button { font-size: .78rem; padding-left: 0; padding-right: 0; } }

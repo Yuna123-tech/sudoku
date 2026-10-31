@@ -347,7 +347,7 @@
   };
   const bestMove = (st, level) => search(st, LEVELS[level] || LEVELS.medium);
 
-  const api = { COLS, ROWS, SETUPS, SCORE, HAN_BONUS, create, legalMoves, canPass, play, make, unmake, inCheck, facing, status, points, bestMove, idx, inPalace, key };
+  const api = { COLS, ROWS, SETUPS, SCORE, HAN_BONUS, create, legalMoves, pseudoMoves, canPass, play, make, unmake, inCheck, facing, status, points, bestMove, idx, inPalace, key };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.JanggiEngine = api;
 })(typeof self !== 'undefined' ? self : this);

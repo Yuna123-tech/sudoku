@@ -127,7 +127,10 @@ window.I18N = {
 
 /* 체스·장기·바둑 문구 */
 Object.assign(window.I18N.ko, {
-  'tab.sudoku': '스도쿠', 'tab.chess': '체스', 'tab.janggi': '장기', 'tab.baduk': '바둑', 'tab.omok': '오목',
+  'tab.sudoku': '스도쿠', 'tab.chess': '체스', 'tab.janggi': '장기', 'tab.baduk': '바둑', 'tab.omok': '오목', 'tab.othello': '오델로',
+  'side.othello.1': '흑', 'side.othello.2': '백', 'oth.count': '흑 {b} · 백 {w}', 'r.discs': '돌 개수',
+  'oth.autoPass': '{side}은(는) 둘 곳이 없어 차례가 넘어가요', 'oth.illegal': '상대 돌을 뒤집을 수 있는 곳에만 둘 수 있어요',
+  'rules.othello': '<ul class="steps"><li>상대 돌을 내 돌 두 개 사이에 끼우면 뒤집혀 내 돌이 돼요.</li><li>하나라도 뒤집을 수 있는 곳에만 둘 수 있어요. 둘 곳이 없으면 자동으로 넘어가요.</li><li>둘 다 둘 곳이 없으면 끝나고, 돌이 많은 쪽이 이겨요.</li></ul>',
   'side.omok.1': '흑', 'side.omok.2': '백',
   'omok.rule': '규칙', 'omok.rule.renju': '렌주룰', 'omok.rule.free': '자유룰',
   'omok.ruleHelp': '렌주룰: 흑은 3·3, 4·4, 6목 이상이 금지(×표시)이고 정확히 5목이어야 이겨요. 자유룰: 금지 없이 5목 이상이면 이겨요.',
@@ -150,7 +153,7 @@ Object.assign(window.I18N.ko, {
   'bg.confirmResign': '기권할까요?', 'bg.confirmNew': '진행 중인 대국을 끝내고 새로 시작할까요?',
   'bg.promote': '어떤 기물로 바꿀까요?', 'bg.promoteTitle': '프로모션',
   'bg.points': '초 {c}점 · 한 {h}점 (덤 1.5)', 'bg.goCaps': '따낸 돌 흑 {b} · 백 {w} · 덤 {k}',
-  'bg.scoring': '죽은 돌을 눌러 표시한 뒤 계가하세요', 'bg.counting': '계가 중', 'bg.official': ' (정식)', 'bg.beginnerSize': ' (입문)', 'bg.tapAgain': '칸이 작아서 미리 보여 드려요. 같은 곳을 한 번 더 누르면 놓아져요', 'bg.count': '계가하기', 'bg.resume': '이어 두기',
+  'bg.scoring': '죽은 돌을 눌러 표시한 뒤 계가하세요', 'bg.counting': '계가 중', 'bg.official': ' (정식)', 'bg.selfCheck.janggi': '거기로 가면 내 궁이 잡히는 자리(장군)가 돼서 둘 수 없어요. 그 말은 다른 상대 말이 지키고 있어요', 'bg.selfCheck.chess': '거기로 가면 내 킹이 체크를 받게 돼서 둘 수 없어요', 'bg.beginnerSize': ' (입문)', 'bg.tapAgain': '칸이 작아서 미리 보여 드려요. 같은 곳을 한 번 더 누르면 놓아져요', 'bg.count': '계가하기', 'bg.resume': '이어 두기',
   'bg.scoreLine': '흑 {b}집 · 백 {w}집', 'bg.goResult': '{side} {m}집 승',
   'bg.passed': '{side} 패스', 'bg.cantPass': '장군을 받은 상태에서는 한수쉼을 할 수 없어요', 'bg.illegal': '둘 수 없는 자리예요',
   'bg.noHint': '추천할 수를 찾지 못했어요', 'bg.hintPass': '추천: 패스(한수쉼)',
@@ -163,7 +166,10 @@ Object.assign(window.I18N.ko, {
   'rules.baduk': '<ul class="steps"><li>번갈아 돌을 놓고, 둘러싼 <b>집</b>이 많은 쪽이 이겨요. 흑이 먼저 두고 백은 <b>덤 6.5집</b>을 받아요.</li><li>활로가 모두 막힌 돌은 따내요. 활로가 없는 자리(<b>자충수</b>)에는 둘 수 없어요.</li><li><b>패</b>: 방금 따낸 한 점을 바로 되따낼 수 없어요. 다른 곳에 한 수 둔 뒤엔 가능해요.</li><li>둘 다 연속으로 <b>패스</b>하면 끝나요. 죽은 돌을 표시한 뒤 <b>계가</b>(집 + 따낸 돌)로 승부를 가려요.</li></ul>',
 });
 Object.assign(window.I18N.en, {
-  'tab.sudoku': 'Sudoku', 'tab.chess': 'Chess', 'tab.janggi': 'Janggi', 'tab.baduk': 'Go', 'tab.omok': 'Omok',
+  'tab.sudoku': 'Sudoku', 'tab.chess': 'Chess', 'tab.janggi': 'Janggi', 'tab.baduk': 'Go', 'tab.omok': 'Omok', 'tab.othello': 'Othello',
+  'side.othello.1': 'Black', 'side.othello.2': 'White', 'oth.count': 'Black {b} · White {w}', 'r.discs': 'Disc count',
+  'oth.autoPass': '{side} has no move and passes', 'oth.illegal': 'You must flip at least one disc',
+  'rules.othello': '<ul class="steps"><li>Trap opponent discs between two of yours to flip them.</li><li>Every move must flip at least one disc. With no move, you pass automatically.</li><li>When neither side can move, the player with more discs wins.</li></ul>',
   'side.omok.1': 'Black', 'side.omok.2': 'White',
   'omok.rule': 'Rule', 'omok.rule.renju': 'Renju', 'omok.rule.free': 'Freestyle',
   'omok.ruleHelp': 'Renju: Black may not make 3-3, 4-4 or six+ in a row (marked ×) and must make exactly five. Freestyle: five or more wins, no restrictions.',
@@ -186,7 +192,7 @@ Object.assign(window.I18N.en, {
   'bg.confirmResign': 'Resign this game?', 'bg.confirmNew': 'End the current game and start a new one?',
   'bg.promote': 'Promote the pawn to:', 'bg.promoteTitle': 'Promotion',
   'bg.points': 'Cho {c} · Han {h} (komi 1.5)', 'bg.goCaps': 'Captures B {b} · W {w} · komi {k}',
-  'bg.scoring': 'Tap dead stones, then count', 'bg.counting': 'Counting', 'bg.official': ' (standard)', 'bg.beginnerSize': ' (beginner)', 'bg.tapAgain': 'Small board: tap the same point again to place your stone', 'bg.count': 'Count', 'bg.resume': 'Resume',
+  'bg.scoring': 'Tap dead stones, then count', 'bg.counting': 'Counting', 'bg.official': ' (standard)', 'bg.selfCheck.janggi': 'That move would leave your general in check — the piece is protected', 'bg.selfCheck.chess': 'That move would leave your king in check', 'bg.beginnerSize': ' (beginner)', 'bg.tapAgain': 'Small board: tap the same point again to place your stone', 'bg.count': 'Count', 'bg.resume': 'Resume',
   'bg.scoreLine': 'Black {b} · White {w}', 'bg.goResult': '{side} wins by {m}',
   'bg.passed': '{side} passed', 'bg.cantPass': "You can't pass while in check", 'bg.illegal': "You can't play there",
   'bg.noHint': 'No suggestion found', 'bg.hintPass': 'Suggestion: pass',

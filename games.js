@@ -83,6 +83,17 @@
       canPass: () => true,
       aspect: 1,
     },
+    othello: {
+      sides: [1, 2],
+      defaults: { mode: 'ai', level: 'easy', mySide: 1 },
+      create: () => OthelloEngine.create(),
+      apply: (st, mv) => OthelloEngine.play(st, mv),
+      turn: (st) => st.turn,
+      status: (st) => OthelloEngine.status(st),
+      inCheck: () => false,
+      canPass: () => false,
+      aspect: 1,
+    },
     omok: {
       sides: [1, 2],
       defaults: { mode: 'ai', level: 'easy', mySide: 1, rule: 'renju' },
@@ -177,6 +188,7 @@
           let r;
           if (game === 'baduk') r = task === 'dead' ? GoEngine.estimateDead(st, 400) : GoEngine.bestMove(st, level);
           else if (game === 'omok') r = OmokEngine.bestMove(st, level);
+          else if (game === 'othello') r = OthelloEngine.bestMove(st, level);
           else {
             const m = (game === 'chess' ? ChessEngine : JanggiEngine).bestMove(st, level);
             r = m ? (m.pass ? { pass: true } : { from: m.from, to: m.to, promo: m.promo || null }) : null;
@@ -191,6 +203,7 @@
     if (!G || G.over || G.scoring) return;
     G.thinking = true;
     renderStatus();
+    if (G.id === 'othello') renderBoard();
     const game = G, started = Date.now();
     const { id, r } = await ask('move', G.opts.level);
     // 사람처럼 생각하는 시간: 최소 2초 뒤에 둠
@@ -210,6 +223,7 @@
     G.sel = -1; G.targets = []; G.hint = null; G.ghost = null;
     if (mv && mv.pass) toast(t('bg.passed', { side: sideName(G.id, G.def.turn(st) === G.def.sides[0] ? G.def.sides[1] : G.def.sides[0]) }));
     if (G.id === 'baduk' && mv === -1) toast(t('bg.passed', { side: sideName('baduk', st.turn === 1 ? 2 : 1) }));
+    if (G.id === 'othello' && st.passed) toast(t('oth.autoPass', { side: sideName('othello', st.passed) }));
     if (G.id === 'baduk' && st.passes >= 2) { enterScoring(); return true; }
     const s = G.def.status(st);
     if (s) finish(s.winner, G.id === 'janggi' && (s.reason === 'checkmate' || s.reason === 'repetition') ? `janggi.${s.reason}` : s.reason, s);
@@ -247,6 +261,7 @@
     else head = o.winner == null ? t('bg.draw') : '🎉 ' + t('bg.sideWins', { side: sideName(G.id, o.winner) });
     let detail = t(`r.${o.reason}`);
     if (o.extra && o.extra.points) detail += `<br>${t('bg.points', { c: o.extra.points.c, h: o.extra.points.h })}`;
+    if (o.extra && o.extra.count) detail += `<br>${t('oth.count', { b: o.extra.count.black, w: o.extra.count.white })}`;
     if (o.extra && o.extra.score) {
       const sc = o.extra.score;
       detail = `${t('bg.scoreLine', { b: sc.black, w: sc.white })}<br><b>${t('bg.goResult', { side: sideName('baduk', sc.winner), m: sc.margin })}</b>`;
@@ -299,7 +314,7 @@
     pt.x = e.clientX; pt.y = e.clientY;
     const p = pt.matrixTransform(svg.getScreenCTM().inverse());
     let r, c;
-    if (G.id === 'chess') { r = Math.floor(p.y); c = Math.floor(p.x); if (flipped()) { r = 7 - r; c = 7 - c; } if (r < 0 || r > 7 || c < 0 || c > 7) return null; }
+    if (G.id === 'chess' || G.id === 'othello') { r = Math.floor(p.y); c = Math.floor(p.x); if (flipped()) { r = 7 - r; c = 7 - c; } if (r < 0 || r > 7 || c < 0 || c > 7) return null; }
     else if (G.id === 'janggi') { r = Math.round(p.y - 0.6); c = Math.round(p.x - 0.6); if (flipped()) { r = 9 - r; c = 8 - c; } if (r < 0 || r > 9 || c < 0 || c > 8) return null; }
     else { const N = G.st.N; r = Math.round(p.y - 1); c = Math.round(p.x - 1); if (r < 0 || r >= N || c < 0 || c >= N) return null; }
     return { r, c };
@@ -320,6 +335,13 @@
     if (!G || G.over || G.paused) return;
     const pos = boardPoint(e);
     if (!pos) return;
+    if (G.id === 'othello') {
+      if (G.thinking || isAiTurn()) return;
+      const p = pos.r * 8 + pos.c;
+      if (!OthelloEngine.flips(G.st.b, p, G.st.turn).length) { if (!G.st.b[p]) toast(t('oth.illegal')); return; }
+      commit(p);
+      return;
+    }
     if (G.id === 'omok') {
       if (G.thinking || isAiTurn()) return;
       const p = pos.r * G.st.N + pos.c;
@@ -350,6 +372,11 @@
       commit({ from: tgt[0].from, to: tgt[0].to, promo: tgt[0].promo || null });
       return;
     }
+    // 말이 원래는 갈 수 있는 곳인데 내 궁(킹)이 공격받게 되어 막힌 경우 이유를 알려 줌
+    if (G.sel >= 0 && !own) {
+      const E = G.id === 'chess' ? ChessEngine : JanggiEngine;
+      if (E.pseudoMoves(st, false).some((m) => m.from === G.sel && m.to === i)) { toast(t(`bg.selfCheck.${G.id}`)); return; }
+    }
     if (own) {
       G.sel = i;
       const all = G.id === 'chess' ? ChessEngine.legalMoves(st) : JanggiEngine.legalMoves(st);
@@ -374,7 +401,7 @@
     reqId++; G.thinking = false; G.scoring = null;
     G.moves.pop();
     rebuild();
-    if (G.opts.mode === 'ai' && G.def.turn(G.st) !== G.opts.mySide && G.moves.length) { G.moves.pop(); rebuild(); }
+    while (G.opts.mode === 'ai' && G.def.turn(G.st) !== G.opts.mySide && G.moves.length) { G.moves.pop(); rebuild(); }
     G.sel = -1; G.targets = []; G.hint = null; G.ghost = null;
     persist();
     render();
@@ -475,11 +502,12 @@
     const svg = $('bg-board');
     const wrap = $('bg-wrap');
     wrap.style.setProperty('--ar', G.def.aspect);
-    svg.setAttribute('viewBox', G.id === 'chess' ? '0 0 8 8' : G.id === 'janggi' ? '0 0 9.2 10.2' : `${PAD} ${PAD} ${G.st.N + 1 - 2 * PAD} ${G.st.N + 1 - 2 * PAD}`);
+    svg.setAttribute('viewBox', G.id === 'chess' || G.id === 'othello' ? '0 0 8 8' : G.id === 'janggi' ? '0 0 9.2 10.2' : `${PAD} ${PAD} ${G.st.N + 1 - 2 * PAD} ${G.st.N + 1 - 2 * PAD}`);
     let html = '';
     if (G.id === 'chess') html = drawChess();
     else if (G.id === 'janggi') html = drawJanggi();
     else if (G.id === 'omok') html = drawOmok();
+    else if (G.id === 'othello') html = drawOthello();
     else html = drawGo();
     svg.innerHTML = SVG_DEFS + html;
   }
@@ -590,6 +618,26 @@
       + `<circle class="stone ghost ${G.st.turn === 1 ? 'sb' : 'sw'}" cx="${x}" cy="${y}" r="0.47"/>`;
   }
 
+  function drawOthello() {
+    const st = G.st;
+    let h = `<rect class="oth-bg" x="0" y="0" width="8" height="8" rx="0.12"/>`;
+    for (let i = 1; i < 8; i++) h += `<line class="oth-l" x1="${i}" y1="0" x2="${i}" y2="8"/><line class="oth-l" x1="0" y1="${i}" x2="8" y2="${i}"/>`;
+    for (const [x, y] of [[2, 2], [6, 2], [2, 6], [6, 6]]) h += `<circle class="oth-dot" cx="${x}" cy="${y}" r="0.07"/>`;
+    for (let p = 0; p < 64; p++) {
+      const v = st.b[p];
+      if (!v) continue;
+      const x = (p & 7) + 0.5, y = (p >> 3) + 0.5;
+      h += `<circle class="stone disc ${v === 1 ? 'sb' : 'sw'}" cx="${x}" cy="${y}" r="0.42"/>` + (v === 1 ? `<ellipse class="glint" cx="${x - 0.13}" cy="${y - 0.15}" rx="0.12" ry="0.07" transform="rotate(-35 ${x - 0.13} ${y - 0.15})"/>` : '');
+    }
+    if (st.last >= 0) h += `<circle class="oth-last" cx="${(st.last & 7) + 0.5}" cy="${(st.last >> 3) + 0.5}" r="0.1"/>`;
+    // 사람 차례면 둘 수 있는 곳 표시
+    if (!G.over && !G.thinking && !(G.opts.mode === 'ai' && st.turn !== G.opts.mySide)) {
+      for (const p of OthelloEngine.legalMoves(st)) h += `<circle class="oth-move ${st.turn === 1 ? 'mb' : 'mw'}" cx="${(p & 7) + 0.5}" cy="${(p >> 3) + 0.5}" r="0.13"/>`;
+    }
+    if (typeof G.hint === 'number' && G.hint >= 0) h += `<circle class="go-hint" cx="${(G.hint & 7) + 0.5}" cy="${(G.hint >> 3) + 0.5}" r="0.4"/>`;
+    return h;
+  }
+
   function drawOmok() {
     const st = G.st, N = st.N;
     let h = `<rect class="go-bg" x="${PAD}" y="${PAD}" width="${N + 1 - 2 * PAD}" height="${N + 1 - 2 * PAD}" rx="0.25"/>`;
@@ -639,6 +687,9 @@
     } else if (G.id === 'janggi') {
       const p = JanggiEngine.points(G.st);
       info = t('bg.points', { c: p.c, h: p.h });
+    } else if (G.id === 'othello') {
+      const c = OthelloEngine.count(G.st.b);
+      info = t('oth.count', { b: c.black, w: c.white });
     } else if (G.id === 'omok') {
       info = `${t(`omok.rule.${G.st.rule}`)} · ${t('bg.moves', { n: G.st.moves })}`;
     } else {
@@ -658,7 +709,7 @@
       return;
     }
     tools.className = 'tools bg-tools';
-    const passBtn = G.id === 'chess' || G.id === 'omok' ? '' : `<button class="tool" data-tool="pass"><span class="ti">${ICON.pass}</span><span>${t(`tool.pass.${G.id}`)}</span></button>`;
+    const passBtn = G.id === 'chess' || G.id === 'omok' || G.id === 'othello' ? '' : `<button class="tool" data-tool="pass"><span class="ti">${ICON.pass}</span><span>${t(`tool.pass.${G.id}`)}</span></button>`;
     tools.innerHTML = `<button class="tool" data-tool="undo"><span class="ti">${ICON.undo}</span><span>${t('tool.takeback')}</span></button>
       <button class="tool" data-tool="hint"><span class="ti">${ICON.bulb}</span><span>${t('tool.hint')}</span></button>
       ${passBtn}
