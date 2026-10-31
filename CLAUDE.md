@@ -18,7 +18,7 @@
 | `sudoku.js` | 퍼즐 엔진: 변형 규칙, 풀이기, 생성기(해답 유일성 보장). 브라우저·워커·Node 공용 |
 | `worker.js` | 퍼즐 생성을 웹 워커에서 실행 |
 | `i18n.js` | 화면 문구 번역 (ko/en). 새 문구는 반드시 두 언어 모두 추가 |
-| `sw.js`, `manifest.webmanifest`, `icons/` | PWA(오프라인·설치). 파일을 추가하면 `sw.js`의 ASSETS 목록과 캐시 이름(`sudoku-vN`)도 갱신 |
+| `sw.js`, `manifest.webmanifest`, `icons/` | PWA(오프라인·설치). 캐시 우선으로 한 버전을 통째로 저장. 배포 때 캐시 이름이 커밋 번호로 자동 교체되어, 설치된 앱에 "새 버전이 있어요 · 지금 업데이트" 알림이 뜸. 웹 파일을 추가하면 `sw.js`의 ASSETS 목록에도 추가 |
 | `privacy.html` | 개인정보처리방침 (한/영) |
 | `scripts/build-web.mjs` | 게임 파일만 골라 `_site`(사이트) 또는 `www`(앱)로 복사. 새 웹 파일을 만들면 여기 목록에도 추가 |
 | `android/` | Capacitor 안드로이드 프로젝트 |

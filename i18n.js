@@ -54,6 +54,7 @@ window.I18N = {
     'set.highlightPeers': '관련 칸 강조', 'set.highlightPeersSub': '같은 행·열·영역의 칸을 강조',
     'set.autoClean': '메모 자동 정리', 'set.autoCleanSub': '숫자를 넣으면 관련 칸의 메모에서 해당 숫자 삭제',
 
+    updateReady: '새 버전이 있어요', updateNow: '지금 업데이트',
     installed: '앱이 설치되었어요', installTitle: '앱으로 설치하기',
     installIos: '<ol class="steps"><li><b>Safari</b>로 이 페이지를 엽니다.</li><li>아래쪽(아이패드는 위쪽)의 <b>공유 버튼</b> <span class="kbdish">⬆︎</span>을 누릅니다.</li><li><b>홈 화면에 추가</b> → <b>추가</b>를 누릅니다.</li></ol>',
     installAndroid: '<ol class="steps"><li><b>크롬</b>: 오른쪽 위 <span class="kbdish">⋮</span> → <b>앱 설치</b> 또는 <b>홈 화면에 추가</b></li><li><b>삼성 인터넷</b>: 아래쪽 <span class="kbdish">≡</span> → <b>현재 페이지 추가</b> → <b>홈 화면</b></li></ol>',
@@ -115,6 +116,7 @@ window.I18N = {
     'set.highlightPeers': 'Highlight related cells', 'set.highlightPeersSub': 'Highlight the row, column and region of the selected cell',
     'set.autoClean': 'Auto-clean notes', 'set.autoCleanSub': 'Placing a number removes it from notes in related cells',
 
+    updateReady: 'A new version is available', updateNow: 'Update now',
     installed: 'App installed', installTitle: 'Install as an app',
     installIos: '<ol class="steps"><li>Open this page in <b>Safari</b>.</li><li>Tap the <b>Share button</b> <span class="kbdish">⬆︎</span>.</li><li>Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.</li></ol>',
     installAndroid: '<ol class="steps"><li><b>Chrome</b>: top-right <span class="kbdish">⋮</span> → <b>Install app</b> or <b>Add to Home screen</b></li><li><b>Samsung Internet</b>: bottom <span class="kbdish">≡</span> → <b>Add page to</b> → <b>Home screen</b></li></ol>',

@@ -768,7 +768,40 @@
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   let installPrompt = null;
   if ('serviceWorker' in navigator && location.protocol !== 'file:' && !isNative) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.register('sw.js').then((reg) => {
+      // 새 버전을 다 받아 두면 업데이트 알림을 띄움 (처음 설치할 때는 띄우지 않음)
+      const offer = (w) => { if (w && navigator.serviceWorker.controller) showUpdateBar(w); };
+      if (reg.waiting) offer(reg.waiting);
+      reg.addEventListener('updatefound', () => {
+        const w = reg.installing;
+        if (w) w.addEventListener('statechange', () => { if (w.state === 'installed') offer(w); });
+      });
+      // 앱을 켜 둔 채로 있어도 새 버전을 확인
+      const check = () => reg.update().catch(() => {});
+      setInterval(check, 30 * 60 * 1000);
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+    }).catch(() => {});
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloading) return;
+      reloading = true;
+      location.reload();
+    });
+  }
+
+  function showUpdateBar(worker) {
+    if ($('update-bar')) return;
+    const bar = document.createElement('div');
+    bar.id = 'update-bar';
+    bar.className = 'update-bar';
+    bar.innerHTML = `<span>${t('updateReady')}</span><button class="btn primary">${t('updateNow')}</button><button class="update-close" aria-label="${t('close')}">✕</button>`;
+    bar.querySelector('.btn').onclick = () => {
+      persist(); // 하던 게임을 저장한 뒤 새 버전으로 교체
+      worker.postMessage('skipWaiting');
+    };
+    bar.querySelector('.update-close').onclick = () => bar.remove();
+    document.body.appendChild(bar);
   }
   // 설치 버튼은 항상 보여줌 (이미 앱으로 실행 중일 때만 숨김).
   // 브라우저가 바로 설치를 지원하면 설치 창을, 아니면 기기별 설치 방법을 안내
