@@ -3,6 +3,7 @@
   'use strict';
   const $ = (id) => document.getElementById(id);
   const LEVELS = ['beginner', 'easy', 'medium', 'hard', 'expert'];
+  const AI_MIN_DELAY = 2000; // 컴퓨터가 수를 두기까지 최소 시간(ms)
   const KEY = 'sudoku:bg';
 
   /* ---------- 저장 (이 브라우저에만) ---------- */
@@ -30,6 +31,21 @@
   const GLYPH = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
   const HANJA = { c: { K: '楚', A: '士', R: '車', C: '包', N: '馬', E: '象', P: '卒' }, h: { K: '漢', A: '士', R: '車', C: '包', N: '馬', E: '象', P: '兵' } };
   const STAR = { 9: [2, 4, 6], 13: [3, 6, 9], 19: [3, 9, 15] };
+  // 아주 작은 글자 크기에서는 브라우저가 글자 위치를 부정확하게 잡으므로,
+  // 100배 큰 글자로 배치한 뒤 0.01배로 줄여서 칸 가운데에 정확히 놓음
+  const label = (x, y, size, cls, content, extra = '') =>
+    `<text class="${cls}" transform="translate(${x.toFixed(3)} ${y.toFixed(3)}) scale(0.01)" font-size="${Math.round(size * 100)}" ${extra}>${content}</text>`;
+  // 입체감을 위한 그라데이션·그림자
+  const SVG_DEFS = `<defs>
+    <radialGradient id="g-sb" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#77746c"/><stop offset=".35" stop-color="#2c2a26"/><stop offset="1" stop-color="#050505"/></radialGradient>
+    <radialGradient id="g-sw" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#eeebe3"/><stop offset="1" stop-color="#bdb6a6"/></radialGradient>
+    <linearGradient id="g-cw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#f1ebde"/><stop offset="1" stop-color="#cfc4ae"/></linearGradient>
+    <linearGradient id="g-cb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#57524a"/><stop offset=".45" stop-color="#2a2722"/><stop offset="1" stop-color="#0d0c0a"/></linearGradient>
+    <linearGradient id="g-jp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#eadcc0"/></linearGradient>
+    <filter id="f-stone" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx=".05" dy=".07" stdDeviation=".05" flood-color="#000" flood-opacity=".45"/></filter>
+    <filter id="f-piece" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="2" dy="4" stdDeviation="3" flood-color="#000" flood-opacity=".4"/></filter>
+    <filter id="f-jp" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx=".03" dy=".05" stdDeviation=".04" flood-color="#000" flood-opacity=".4"/></filter>
+  </defs>`;
 
   const DEFS = {
     chess: {
@@ -159,8 +175,11 @@
     if (!G || G.over || G.scoring) return;
     G.thinking = true;
     renderStatus();
-    const game = G;
+    const game = G, started = Date.now();
     const { id, r } = await ask('move', G.opts.level);
+    // 사람처럼 생각하는 시간: 최소 2초 뒤에 둠
+    const wait = AI_MIN_DELAY - (Date.now() - started);
+    if (wait > 0) await new Promise((res) => setTimeout(res, wait));
     if (G !== game || id !== reqId || G.over) return; // 그사이 무르기·새 대국
     G.thinking = false;
     if (r == null) { renderStatus(); return; }
@@ -421,7 +440,7 @@
     if (G.id === 'chess') html = drawChess();
     else if (G.id === 'janggi') html = drawJanggi();
     else html = drawGo();
-    svg.innerHTML = html;
+    svg.innerHTML = SVG_DEFS + html;
   }
 
   function drawChess() {
@@ -441,13 +460,13 @@
     // 좌표
     for (let i = 0; i < 8; i++) {
       const file = 'abcdefgh'[f ? 7 - i : i], rank = f ? i + 1 : 8 - i;
-      h += `<text class="coord" x="${i + 0.82}" y="7.94">${file}</text><text class="coord" x="0.05" y="${i + 0.2}">${rank}</text>`;
+      h += label(i + 0.9, 7.9, 0.17, 'coord', file, 'text-anchor="middle"') + label(0.08, i + 0.15, 0.17, 'coord', rank);
     }
     for (let s = 0; s < 64; s++) {
       const p = st.b[s];
       if (!p) continue;
       const [x, y] = pos(s), white = p === p.toUpperCase();
-      h += `<text class="cp ${white ? 'cw' : 'cb'}" x="${x + 0.5}" y="${y + 0.56}">${GLYPH[p.toLowerCase()]}︎</text>`;
+      h += label(x + 0.5, y + 0.5, 0.82, `cp ${white ? 'cw' : 'cb'}`, GLYPH[p.toLowerCase()] + '\uFE0E');
     }
     for (const m of G.targets.filter((x, i, arr) => arr.findIndex((y) => y.to === x.to) === i)) {
       const [x, y] = pos(m.to);
@@ -485,7 +504,7 @@
       let cls = `jp jp-${side}`;
       if (G.sel === i) cls += ' jp-sel';
       if (checked === i) cls += ' jp-check';
-      h += `<polygon class="${cls}" points="${oct(x, y, rad)}"/><text class="jt jt-${side}" x="${x}" y="${y + rad * 0.36}" font-size="${(rad * 1.15).toFixed(2)}">${HANJA[side][tp]}</text>`;
+      h += `<polygon class="${cls}" points="${oct(x, y, rad)}"/>` + label(x, y, rad * 1.15, `jt jt-${side}`, HANJA[side][tp]);
     }
     for (const m of G.targets) {
       const [x, y] = P(Math.floor(m.to / 9), m.to % 9);
@@ -509,7 +528,8 @@
     if (G.scoring && !G.scoring.loading) owner = GoEngine.score(st, G.scoring.dead).owner;
     for (let p = 0; p < N * N; p++) {
       const v = st.b[p], x = (p % N) + 1, y = Math.floor(p / N) + 1;
-      if (v) h += `<circle class="stone ${v === 1 ? 'sb' : 'sw'}${dead.has(p) ? ' s-dead' : ''}" cx="${x}" cy="${y}" r="0.47"/>`;
+      if (v) h += `<circle class="stone ${v === 1 ? 'sb' : 'sw'}${dead.has(p) ? ' s-dead' : ''}" cx="${x}" cy="${y}" r="0.47"/>`
+        + (v === 1 && !dead.has(p) ? `<ellipse class="glint" cx="${x - 0.15}" cy="${y - 0.17}" rx="0.13" ry="0.08" transform="rotate(-35 ${x - 0.15} ${y - 0.17})"/>` : '');
       if (owner && (owner[p] === 1 || owner[p] === 2) && (!v || dead.has(p))) h += `<rect class="terr ${owner[p] === 1 ? 'tb' : 'tw'}" x="${x - 0.17}" y="${y - 0.17}" width="0.34" height="0.34"/>`;
     }
     if (st.last >= 0 && st.last != null && !G.scoring) {
@@ -579,7 +599,7 @@
       let s = o.mode === 'ai' ? `${t('bg.mode.ai')} · ${levelName(o.level)} · ${t('bg.mySide')}: ${sideName(id, o.mySide)}` : t('bg.mode.pvp');
       if (id === 'baduk') s += ` · ${t('bg.lines', { n: o.size })}`;
       if (id === 'janggi') s += ` · ${o.setupCho} / ${o.setupHan}`;
-      $('bg-sum').textContent = s;
+      document.querySelectorAll('#bg-mode [data-mode]').forEach((b) => b.classList.toggle('active', b.dataset.mode === o.mode));
       $('bg-side-sum').textContent = s;
     }
   }
@@ -660,6 +680,19 @@
   });
   $('bg-new').onclick = () => { if (G && !G.over && G.moves.length && !confirm(t('bg.confirmNew'))) return; newGameDialog(); };
   $('bg-side-new').onclick = $('bg-new').onclick;
+  // 컴퓨터와 / 둘이서 바로 바꾸기 (새 대국으로 시작)
+  $('bg-mode').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-mode]');
+    if (!b || !G || b.dataset.mode === G.opts.mode) return;
+    if (!G.over && G.moves.length && !confirm(t('bg.confirmNew'))) return;
+    const opts = Object.assign({}, DEFS[G.id].defaults, data.opts[G.id] || {}, { mode: b.dataset.mode });
+    if (opts.mode === 'pvp') opts.mySide = DEFS[G.id].sides[0];
+    data.opts[G.id] = opts;
+    saveData();
+    reqId++;
+    hideOverlay();
+    startGame(G.id, opts);
+  });
   $('bg-rule').onclick = () => openDialog(`${t('bg.rules')} · ${t(`tab.${G ? G.id : data.game}`)}`, t(`rules.${G ? G.id : data.game}`));
   $('bg-pause').onclick = togglePause;
   $('bg-overlay').addEventListener('click', (e) => {

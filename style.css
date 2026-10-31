@@ -376,6 +376,7 @@ h3.sub { font-size: .88rem; margin: 16px 0 8px; color: var(--muted); }
   .icon-btn { padding: 8px 12px; }
   .side { display: flex; flex-direction: column; justify-content: center; flex: none; width: 320px; overflow-y: auto; padding-bottom: 4px; }
   .picker { display: none; }
+  #bg-play .bg-picker { display: grid; }
   .play { flex: 0 1 auto; max-width: max(380px, calc(100dvh - 230px)); }
 }
 
@@ -452,6 +453,9 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
 
 /* 대국 화면 */
 .bg-picker { grid-template-columns: 1fr auto; align-items: center; }
+.mode-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; min-width: 0; }
+.mode-seg button { border: 0; background: transparent; border-radius: 9px; padding: 7px 4px; font-size: .84rem; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mode-seg button.active { background: var(--surface); color: var(--accent-strong); box-shadow: var(--shadow-sm); }
 .bg-sum {
   min-width: 0; font-size: .84rem; font-weight: 600; color: var(--muted); background: var(--surface); border: 1px solid var(--border);
   border-left: 4px solid var(--accent); border-radius: 12px; padding: 9px 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -479,10 +483,12 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
 .sq-sel { fill: color-mix(in srgb, var(--accent) 55%, #efe2c8) !important; }
 .sq-hint { fill: color-mix(in srgb, #4aa3d8 55%, #efe2c8) !important; }
 .check-glow { fill: rgba(214, 64, 52, .55); }
-.coord { font-size: .17px; font-weight: 700; fill: #8a6a4f; font-family: system-ui, sans-serif; }
-.cp { font-size: .86px; text-anchor: middle; dominant-baseline: middle; font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "DejaVu Sans", "Apple Symbols", serif; paint-order: stroke; stroke-linejoin: round; }
-.cw { fill: #fbf8f0; stroke: #2a251d; stroke-width: .035px; }
-.cb { fill: #23201b; stroke: #f5efe3; stroke-width: .02px; }
+.bg-board text { letter-spacing: 0; }
+.coord { font-weight: 700; fill: #8a6a4f; font-family: system-ui, sans-serif; dominant-baseline: central; }
+.cp { text-anchor: middle; dominant-baseline: central; font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "DejaVu Sans", "Apple Symbols", serif;
+  paint-order: stroke; stroke-linejoin: round; filter: url(#f-piece); }
+.cw { fill: url(#g-cw); stroke: #2a251d; stroke-width: 3.2px; }
+.cb { fill: url(#g-cb); stroke: #f3ecdd; stroke-width: 1.6px; }
 .tgt { fill: rgba(40, 40, 30, .28); }
 .tgt-cap { fill: none; stroke: rgba(40, 40, 30, .32); stroke-width: .08px; }
 
@@ -491,11 +497,11 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
 .jg-l { stroke: #6e4d2c; stroke-width: .035px; }
 .jg-last { fill: rgba(250, 230, 120, .55); }
 .jg-hint { fill: none; stroke: #2f8fd0; stroke-width: .07px; }
-.jp { fill: #fbf3e2; stroke-width: .05px; filter: drop-shadow(0 .03px .04px rgba(0,0,0,.35)); }
+.jp { fill: url(#g-jp); stroke-width: .05px; filter: url(#f-jp); }
 .jp-c { stroke: #2c6e8f; } .jp-h { stroke: #b5392c; }
 .jp-sel { fill: color-mix(in srgb, var(--accent) 35%, #fbf3e2); stroke-width: .08px; }
 .jp-check { fill: #f7c9c2; }
-.jt { text-anchor: middle; font-weight: 800; font-family: "Noto Serif CJK KR", "Noto Serif KR", "Batang", "AppleMyungjo", serif; pointer-events: none; }
+.jt { text-anchor: middle; dominant-baseline: central; font-weight: 800; font-family: "Noto Serif CJK KR", "Noto Serif KR", "Batang", "AppleMyungjo", serif; pointer-events: none; }
 .jt-c { fill: #1f5d7d; } .jt-h { fill: #a52f23; }
 .bg-board .tgt { fill: rgba(30, 30, 20, .35); }
 
@@ -503,9 +509,10 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
 .go-bg { fill: #ddb877; }
 .go-l { stroke: #5b4426; stroke-width: .035px; }
 .go-star { fill: #5b4426; }
-.stone { stroke-width: .025px; }
-.sb { fill: #22211e; stroke: #000; }
-.sw { fill: #f8f6f0; stroke: #9d9686; }
+.stone { filter: url(#f-stone); }
+.sb { fill: url(#g-sb); }
+.sw { fill: url(#g-sw); stroke: #a39b8b; stroke-width: .015px; }
+.glint { fill: rgba(255, 255, 255, .22); pointer-events: none; }
 .s-dead { opacity: .4; }
 .terr.tb { fill: #22211e; } .terr.tw { fill: #f8f6f0; stroke: #6b6457; stroke-width: .02px; }
 .go-last { fill: none; stroke-width: .06px; }

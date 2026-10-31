@@ -106,7 +106,10 @@
     <!-- 체스·장기·바둑 -->
     <section class="play" id="bg-play">
       <div class="picker bg-picker">
-        <div class="bg-sum" id="bg-sum"></div>
+        <div class="mode-seg" id="bg-mode">
+          <button data-mode="ai" data-i18n="bg.mode.ai">컴퓨터와 대결</button>
+          <button data-mode="pvp" data-i18n="bg.mode.pvp">둘이서 대결</button>
+        </div>
         <button class="btn primary" id="bg-new" data-i18n="bg.newGame">새 대국</button>
       </div>
       <div class="status">
