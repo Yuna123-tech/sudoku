@@ -469,8 +469,8 @@
     beginner: { heuristicOnly: true, pick: 6 },  // 바둑 상식 상위 6수 중 하나 (탐색 없음)
     easy: { playouts: 200, timeMs: 1000, pickTop: 3 },  // 적게 보고, 상위 3수 중 하나
     medium: { playouts: 1500, timeMs: 2500 },
-    hard: { playouts: 6000, timeMs: 5000 },
-    expert: { playouts: 15000, timeMs: 8000 },
+    hard: { playouts: 4000, timeMs: 3500 },
+    expert: { playouts: 20000, timeMs: 9000 }, // 어려움보다 2.5배 이상 더 많이 읽음
   };
   const bestMove = (st, level) => mcts(st, LEVELS[level] || LEVELS.medium).move;
 
