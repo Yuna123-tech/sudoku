@@ -55,7 +55,10 @@ window.I18N = {
     'set.autoClean': '메모 자동 정리', 'set.autoCleanSub': '숫자를 넣으면 관련 칸의 메모에서 해당 숫자 삭제',
 
     installed: '앱이 설치되었어요', installTitle: '앱으로 설치하기',
-    installHtml: '<ol class="steps"><li><b>Safari</b>로 이 페이지를 엽니다.</li><li>아래쪽(또는 위쪽)의 <b>공유 버튼</b> <span class="kbdish">⬆︎</span>을 누릅니다.</li><li><b>홈 화면에 추가</b>를 선택하고 <b>추가</b>를 누릅니다.</li></ol><p class="hint-text">홈 화면의 스도쿠 아이콘으로 실행하면 앱처럼 전체 화면으로 열리고, 인터넷이 없어도 플레이할 수 있어요.<br>※ 홈 화면 앱은 Safari와 저장 공간이 따로라서, 기존 기록은 <b>기록 → 내보내기/가져오기</b>로 옮겨 주세요.</p>',
+    installIos: '<ol class="steps"><li><b>Safari</b>로 이 페이지를 엽니다.</li><li>아래쪽(아이패드는 위쪽)의 <b>공유 버튼</b> <span class="kbdish">⬆︎</span>을 누릅니다.</li><li><b>홈 화면에 추가</b> → <b>추가</b>를 누릅니다.</li></ol>',
+    installAndroid: '<ol class="steps"><li><b>크롬</b>: 오른쪽 위 <span class="kbdish">⋮</span> → <b>앱 설치</b> 또는 <b>홈 화면에 추가</b></li><li><b>삼성 인터넷</b>: 아래쪽 <span class="kbdish">≡</span> → <b>현재 페이지 추가</b> → <b>홈 화면</b></li></ol>',
+    installPc: '<ol class="steps"><li><b>크롬·엣지</b>에서 주소창 오른쪽의 <b>설치 아이콘</b>을 누릅니다.</li><li>안 보이면 메뉴 <span class="kbdish">⋮</span> → <b>앱 설치</b> (엣지: <b>앱 → 이 사이트를 앱으로 설치</b>)</li></ol>',
+    installNote: '<p class="hint-text">이미 설치했다면 홈 화면이나 앱 목록에서 <b>스도쿠</b> 아이콘을 찾아 주세요.<br>카카오톡에서 열었다면 오른쪽 위 메뉴 → <b>다른 브라우저로 열기</b>를 먼저 눌러 주세요.<br>설치한 앱은 인터넷이 없어도 플레이할 수 있어요.</p>',
   },
 
   en: {
@@ -113,6 +116,9 @@ window.I18N = {
     'set.autoClean': 'Auto-clean notes', 'set.autoCleanSub': 'Placing a number removes it from notes in related cells',
 
     installed: 'App installed', installTitle: 'Install as an app',
-    installHtml: '<ol class="steps"><li>Open this page in <b>Safari</b>.</li><li>Tap the <b>Share button</b> <span class="kbdish">⬆︎</span>.</li><li>Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.</li></ol><p class="hint-text">Launched from the home screen icon, it opens full-screen like an app and works offline.<br>Note: the home screen app has separate storage from Safari, so move existing records with <b>Records → Export/Import</b>.</p>',
+    installIos: '<ol class="steps"><li>Open this page in <b>Safari</b>.</li><li>Tap the <b>Share button</b> <span class="kbdish">⬆︎</span>.</li><li>Choose <b>Add to Home Screen</b>, then tap <b>Add</b>.</li></ol>',
+    installAndroid: '<ol class="steps"><li><b>Chrome</b>: top-right <span class="kbdish">⋮</span> → <b>Install app</b> or <b>Add to Home screen</b></li><li><b>Samsung Internet</b>: bottom <span class="kbdish">≡</span> → <b>Add page to</b> → <b>Home screen</b></li></ol>',
+    installPc: '<ol class="steps"><li>In <b>Chrome or Edge</b>, click the <b>install icon</b> at the right of the address bar.</li><li>Not there? Menu <span class="kbdish">⋮</span> → <b>Install app</b> (Edge: <b>Apps → Install this site as an app</b>)</li></ol>',
+    installNote: '<p class="hint-text">Already installed? Look for the <b>Sudoku</b> icon on your home screen or app list.<br>Opened from a chat app? Use its menu to <b>open in your browser</b> first.<br>The installed app works offline.</p>',
   },
 };

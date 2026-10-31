@@ -770,26 +770,27 @@
   if ('serviceWorker' in navigator && location.protocol !== 'file:' && !isNative) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
+  // 설치 버튼은 항상 보여줌 (이미 앱으로 실행 중일 때만 숨김).
+  // 브라우저가 바로 설치를 지원하면 설치 창을, 아니면 기기별 설치 방법을 안내
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     installPrompt = e;
-    $('btn-install').classList.remove('hidden');
   });
   window.addEventListener('appinstalled', () => {
     installPrompt = null;
-    $('btn-install').classList.add('hidden');
     toast(t('installed'));
   });
-  if (isIOS && !standalone && !isNative) $('btn-install').classList.remove('hidden');
+  if (!standalone && !isNative) $('btn-install').classList.remove('hidden');
   $('btn-install').onclick = async () => {
     if (installPrompt) {
       installPrompt.prompt();
       await installPrompt.userChoice;
       installPrompt = null;
-      $('btn-install').classList.add('hidden');
       return;
     }
-    openDialog(t('installTitle'), t('installHtml'));
+    const isAndroid = /android/i.test(navigator.userAgent);
+    const steps = isIOS ? t('installIos') : isAndroid ? t('installAndroid') : t('installPc');
+    openDialog(t('installTitle'), steps + t('installNote'));
   };
 
   /* ---------- 시작 ---------- */
