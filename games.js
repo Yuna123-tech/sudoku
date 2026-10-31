@@ -74,7 +74,7 @@
     },
     baduk: {
       sides: [1, 2],
-      defaults: { mode: 'ai', level: 'easy', mySide: 1, size: 9 },
+      defaults: { mode: 'ai', level: 'easy', mySide: 1, size: 19 }, // 정식 19줄
       create: (o) => GoEngine.create(o.size || 9),
       apply: (st, mv) => GoEngine.play(st, mv),
       turn: (st) => st.turn,
@@ -145,6 +145,8 @@
   function resumeGame(id) {
     const s = data.saves[id];
     if (!s) return false;
+    // 예전 기본값(9줄)으로 시작만 해 둔 바둑은 정식 19줄로 새로 시작
+    if (id === 'baduk' && s.opts.size === 9 && !(data.opts.baduk && data.opts.baduk.size) && s.moves.length < 2) { delete data.saves.baduk; return false; }
     G = { id, def: DEFS[id], opts: s.opts, moves: s.moves || [], elapsed: s.elapsed || 0, hints: s.hints || 0, over: null, sel: -1, targets: [], hint: null, thinking: false, scoring: null, paused: false };
     try { rebuild(); } catch { return false; }
     if (s.scoring) G.scoring = { dead: s.scoring.dead || [] };
@@ -420,7 +422,7 @@
     let html = `<div class="ng"><label>${t('bg.mode')}</label>${seg('mode', [['ai', t('bg.mode.ai')], ['pvp', t('bg.mode.pvp')]], o.mode)}
       <div class="ai-only"><label>${t('bg.level')}</label>${seg('level', LEVELS.map((l) => [l, levelName(l)]), o.level)}
       <label>${t('bg.mySide')}</label>${seg('mySide', [...sides, ['random', t('bg.random')]], o.mySide)}</div>`;
-    if (id === 'baduk') html += `<label>${t('bg.size')}</label>${seg('size', [9, 13, 19].map((n) => [n, t('bg.lines', { n })]), o.size)}`;
+    if (id === 'baduk') html += `<label>${t('bg.size')}</label>${seg('size', [19, 13, 9].map((n) => [n, t('bg.lines', { n }) + (n === 19 ? t('bg.official') : n === 9 ? t('bg.beginnerSize') : '')]), o.size)}`;
     if (id === 'omok') html += `<label>${t('omok.rule')}</label>${seg('rule', [['renju', t('omok.rule.renju')], ['free', t('omok.rule.free')]], o.rule)}<p class="hint-text">${t('omok.ruleHelp')}</p>`;
     if (id === 'janggi') {
       const setups = JanggiEngine.SETUPS.map((s) => [s, s]);

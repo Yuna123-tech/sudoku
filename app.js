@@ -785,6 +785,9 @@
       const check = () => reg.update().catch(() => {});
       setInterval(check, 30 * 60 * 1000);
       document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+      // 아이폰 홈 화면 앱은 다시 돌아올 때 화면이 그대로 이어지므로, 이때도 새 버전 확인
+      window.addEventListener('pageshow', check);
+      window.addEventListener('focus', check);
     }).catch(() => {});
     let reloading = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {

@@ -581,3 +581,9 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
 /* 바둑·오목: 두 번 눌러 두기 미리보기 */
 .stone.ghost { opacity: .5; filter: none; }
 .ghost-line { stroke: var(--accent); stroke-width: .06px; opacity: .55; }
+
+/* 세로 휴대폰: 바둑·오목 판은 화면 폭을 거의 꽉 채움 */
+@media (max-width: 599px) and (orientation: portrait) {
+  body[data-game="baduk"] #bg-wrap, body[data-game="omok"] #bg-wrap { width: calc(100% + 16px); margin: 0 -8px; }
+  body[data-game="baduk"] .bg-board, body[data-game="omok"] .bg-board { border-radius: 8px; }
+}

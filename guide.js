@@ -79,7 +79,7 @@
         '더 둘 곳이 없으면 <b>패스</b>를 눌러요. <b>둘 다 연속으로 패스</b>하면 끝나요.',
         '죽은 돌(살 수 없는 돌)을 눌러 표시하고 <b>계가하기</b>를 누르면 점수가 계산돼요.',
       ]) +
-      TIP('처음에는 <b>9줄</b>로 시작하세요. <b>귀(모서리) → 변 → 가운데</b> 순서로 집을 짓기 쉬워요. 내 돌이 단수가 되면 먼저 살리세요!'),
+      TIP('정식 대국은 <b>19줄</b>이에요. 처음 배울 때는 새 대국에서 <b>9줄</b>을 골라 연습해 보세요. <b>귀(모서리) → 변 → 가운데</b> 순서로 집을 짓기 쉬워요. 내 돌이 단수가 되면 먼저 살리세요!'),
 
     'guide.omok': GOAL('가로·세로·대각선 어느 방향이든 <b>내 돌 5개를 먼저 한 줄로</b> 이으면 이겨요. 흑이 먼저 둬요.') +
       H('두는 방법') + UL([
@@ -118,7 +118,7 @@
       H('How to play') + UL(['Take turns placing a stone on an <b>intersection</b>. Stones never move.', 'Empty points next to a group are its <b>liberties</b>. With one left it is in <b>atari</b>.', 'Fill all of a group’s liberties to <b>capture</b> it.']) +
       H('Not allowed') + UL(['<b>Suicide</b>: a move that leaves your own stones with no liberties (unless it captures).', '<b>Ko</b>: you cannot immediately recapture a single stone that just captured yours. Play elsewhere first.']) +
       H('Ending') + UL(['When nothing is left, press <b>Pass</b>. Two passes in a row end the game.', 'Tap dead stones to mark them, then press <b>Count</b>.']) +
-      TIP('Start with <b>9×9</b>. Corners first, then sides, then the center. Save your stones in atari!'),
+      TIP('A standard game is <b>19×19</b>; beginners can practise on <b>9×9</b> (New game). Corners first, then sides, then the center. Save your stones in atari!'),
     'guide.omok': GOAL('Be the first to get <b>five of your stones in a row</b> — across, down or diagonally. Black moves first.') +
       H('How to play') + UL(['Take turns placing stones on intersections. Nothing is captured.', 'A full board is a draw.']) +
       H('Renju rule (Black only)') + UL(['Black moves first and has an advantage, so Black may not play these points (marked <b style="color:#d2402f">×</b>):', '<b>Double three</b>: a move making two open threes at once', '<b>Double four</b>: a move making two fours at once', '<b>Overline</b>: six or more in a row (Black must make <b>exactly five</b>; White may make more)', 'A move that makes five always wins.', 'Choose <b>Freestyle</b> for no restrictions (five or more wins).']) +
