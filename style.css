@@ -16,6 +16,7 @@
 [data-variant="chess"]     { --v-l: #56708f; --v-d: #9db3cf; }
 [data-variant="janggi"]    { --v-l: #a3563c; --v-d: #e09a7f; }
 [data-variant="baduk"]     { --v-l: #3d7466; --v-d: #86c2b2; }
+[data-variant="omok"]      { --v-l: #7a5a9c; --v-d: #b9a0d6; }
 
 :root {
   --bg: #f2eee6;
@@ -438,7 +439,7 @@ h3.sub { font-size: .88rem; margin: 16px 0 8px; color: var(--muted); }
    게임 탭 (스도쿠 · 체스 · 장기 · 바둑)
    ========================================================= */
 .game-tabs {
-  position: relative; z-index: 1; flex: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+  position: relative; z-index: 1; flex: none; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;
   width: calc(100% - 24px); max-width: 520px; margin: 0 auto 8px; padding: 4px;
   background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;
 }
@@ -517,6 +518,9 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
 .terr.tb { fill: #22211e; } .terr.tw { fill: #f8f6f0; stroke: #6b6457; stroke-width: .02px; }
 .go-last { fill: none; stroke-width: .06px; }
 .go-last.on-b { stroke: #f8f6f0; } .go-last.on-w { stroke: #22211e; }
+.win-ring { fill: none; stroke: #e0453a; stroke-width: .08px; }
+.ban { stroke: #d2402f; stroke-width: .07px; stroke-linecap: round; opacity: .8; pointer-events: none; }
+.dot-omok-1 { background: #26251f; } .dot-omok-2 { background: #fbfaf6; }
 .go-hint { fill: rgba(47, 143, 208, .35); stroke: #2f8fd0; stroke-width: .05px; }
 
 .bg-tools { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }

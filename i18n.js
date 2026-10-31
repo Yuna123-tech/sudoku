@@ -127,7 +127,13 @@ window.I18N = {
 
 /* 체스·장기·바둑 문구 */
 Object.assign(window.I18N.ko, {
-  'tab.sudoku': '스도쿠', 'tab.chess': '체스', 'tab.janggi': '장기', 'tab.baduk': '바둑',
+  'tab.sudoku': '스도쿠', 'tab.chess': '체스', 'tab.janggi': '장기', 'tab.baduk': '바둑', 'tab.omok': '오목',
+  'side.omok.1': '흑', 'side.omok.2': '백',
+  'omok.rule': '규칙', 'omok.rule.renju': '렌주룰', 'omok.rule.free': '자유룰',
+  'omok.ruleHelp': '렌주룰: 흑은 3·3, 4·4, 6목 이상이 금지(×표시)이고 정확히 5목이어야 이겨요. 자유룰: 금지 없이 5목 이상이면 이겨요.',
+  'omok.double-three': '흑 금수: 3·3 (열린 3이 두 개)', 'omok.double-four': '흑 금수: 4·4 (4가 두 개)', 'omok.overline': '흑 금수: 6목 이상(장목)',
+  'r.five': '5목 완성', 'r.full': '판이 가득 참 (무승부)',
+  'rules.omok': '<ul class="steps"><li>흑부터 번갈아 돌을 놓고, 가로·세로·대각선으로 <b>5개를 먼저 잇는</b> 쪽이 이겨요.</li><li><b>렌주룰</b>: 흑은 <b>3·3</b>(열린 3 두 개), <b>4·4</b>, <b>6목 이상</b>을 둘 수 없어요(판에 × 표시). 흑은 정확히 5목, 백은 5목 이상이면 이겨요. 5목이 되는 수는 금수여도 이겨요.</li><li><b>자유룰</b>: 금지 없이 5목 이상이면 이겨요.</li><li>판이 모두 차면 무승부예요.</li></ul>',
   'bg.mode': '대결 방식', 'bg.mode.ai': '컴퓨터와 대결', 'bg.mode.pvp': '둘이서 대결',
   'bg.vsAi': '컴퓨터 · {level}', 'bg.vsPvp': '둘이서',
   'bg.level': '컴퓨터 실력', 'bg.mySide': '내 진영', 'bg.random': '무작위', 'bg.size': '판 크기', 'bg.lines': '{n}줄',
@@ -157,7 +163,13 @@ Object.assign(window.I18N.ko, {
   'rules.baduk': '<ul class="steps"><li>번갈아 돌을 놓고, 둘러싼 <b>집</b>이 많은 쪽이 이겨요. 흑이 먼저 두고 백은 <b>덤 6.5집</b>을 받아요.</li><li>활로가 모두 막힌 돌은 따내요. 활로가 없는 자리(<b>자충수</b>)에는 둘 수 없어요.</li><li><b>패</b>: 방금 따낸 한 점을 바로 되따낼 수 없어요. 다른 곳에 한 수 둔 뒤엔 가능해요.</li><li>둘 다 연속으로 <b>패스</b>하면 끝나요. 죽은 돌을 표시한 뒤 <b>계가</b>(집 + 따낸 돌)로 승부를 가려요.</li></ul>',
 });
 Object.assign(window.I18N.en, {
-  'tab.sudoku': 'Sudoku', 'tab.chess': 'Chess', 'tab.janggi': 'Janggi', 'tab.baduk': 'Go',
+  'tab.sudoku': 'Sudoku', 'tab.chess': 'Chess', 'tab.janggi': 'Janggi', 'tab.baduk': 'Go', 'tab.omok': 'Omok',
+  'side.omok.1': 'Black', 'side.omok.2': 'White',
+  'omok.rule': 'Rule', 'omok.rule.renju': 'Renju', 'omok.rule.free': 'Freestyle',
+  'omok.ruleHelp': 'Renju: Black may not make 3-3, 4-4 or six+ in a row (marked ×) and must make exactly five. Freestyle: five or more wins, no restrictions.',
+  'omok.double-three': 'Forbidden for Black: double three', 'omok.double-four': 'Forbidden for Black: double four', 'omok.overline': 'Forbidden for Black: overline (6+)',
+  'r.five': 'Five in a row', 'r.full': 'Board full (draw)',
+  'rules.omok': '<ul class="steps"><li>Black moves first. The first to get <b>five in a row</b> (across, down or diagonal) wins.</li><li><b>Renju</b>: Black may not play a <b>double three</b>, <b>double four</b> or <b>overline</b> (marked ×). Black needs exactly five; White wins with five or more. A move that makes five always wins.</li><li><b>Freestyle</b>: five or more wins, no restrictions.</li><li>A full board is a draw.</li></ul>',
   'bg.mode': 'Mode', 'bg.mode.ai': 'vs Computer', 'bg.mode.pvp': 'Two players',
   'bg.vsAi': 'Computer · {level}', 'bg.vsPvp': 'Two players',
   'bg.level': 'Computer level', 'bg.mySide': 'Play as', 'bg.random': 'Random', 'bg.size': 'Board size', 'bg.lines': '{n}×{n}',

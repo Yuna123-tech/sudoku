@@ -81,6 +81,17 @@
       canPass: () => true,
       aspect: 1,
     },
+    omok: {
+      sides: [1, 2],
+      defaults: { mode: 'ai', level: 'easy', mySide: 1, rule: 'renju' },
+      create: (o) => OmokEngine.create(o.rule || 'renju'),
+      apply: (st, mv) => OmokEngine.play(st, mv),
+      turn: (st) => st.turn,
+      status: (st) => OmokEngine.status(st),
+      inCheck: () => false,
+      canPass: () => false,
+      aspect: 1,
+    },
   };
 
   /* ---------- 현재 대국 ---------- */
@@ -161,6 +172,7 @@
           for (const m of moves) DEFS[game].apply(st, m);
           let r;
           if (game === 'baduk') r = task === 'dead' ? GoEngine.estimateDead(st, 400) : GoEngine.bestMove(st, level);
+          else if (game === 'omok') r = OmokEngine.bestMove(st, level);
           else {
             const m = (game === 'chess' ? ChessEngine : JanggiEngine).bestMove(st, level);
             r = m ? (m.pass ? { pass: true } : { from: m.from, to: m.to, promo: m.promo || null }) : null;
@@ -293,6 +305,15 @@
     if (!G || G.over || G.paused) return;
     const pos = boardPoint(e);
     if (!pos) return;
+    if (G.id === 'omok') {
+      if (G.thinking || isAiTurn()) return;
+      const p = pos.r * G.st.N + pos.c;
+      if (G.st.b[p]) return;
+      const why = OmokEngine.forbidden(G.st, p);
+      if (why) { toast(t(`omok.${why}`)); return; }
+      commit(p);
+      return;
+    }
     if (G.id === 'baduk') {
       const p = pos.r * G.st.N + pos.c;
       if (G.scoring) { if (!G.scoring.loading) toggleDead(p); return; }
@@ -385,6 +406,7 @@
       <div class="ai-only"><label>${t('bg.level')}</label>${seg('level', LEVELS.map((l) => [l, levelName(l)]), o.level)}
       <label>${t('bg.mySide')}</label>${seg('mySide', [...sides, ['random', t('bg.random')]], o.mySide)}</div>`;
     if (id === 'baduk') html += `<label>${t('bg.size')}</label>${seg('size', [9, 13, 19].map((n) => [n, t('bg.lines', { n })]), o.size)}`;
+    if (id === 'omok') html += `<label>${t('omok.rule')}</label>${seg('rule', [['renju', t('omok.rule.renju')], ['free', t('omok.rule.free')]], o.rule)}<p class="hint-text">${t('omok.ruleHelp')}</p>`;
     if (id === 'janggi') {
       const setups = JanggiEngine.SETUPS.map((s) => [s, s]);
       html += `<div class="ai-only"><label>${t('bg.setup')} <small>${t('bg.setupHint')}</small></label>${seg('setupMine', setups, o.mySide === 'h' ? o.setupHan : o.setupCho)}</div>
@@ -393,7 +415,7 @@
     html += `<button type="button" class="btn primary ng-start" id="ng-start">${t('bg.start')}</button></div>`;
     openDialog(`${t(`tab.${id}`)} · ${t('bg.newGame')}`, html);
     const body = $('dlg-body');
-    const vals = { mode: o.mode, level: o.level, mySide: o.mySide, size: o.size, setupCho: o.setupCho, setupHan: o.setupHan, setupMine: o.mySide === 'h' ? o.setupHan : o.setupCho };
+    const vals = { mode: o.mode, level: o.level, mySide: o.mySide, size: o.size, rule: o.rule, setupCho: o.setupCho, setupHan: o.setupHan, setupMine: o.mySide === 'h' ? o.setupHan : o.setupCho };
     const sync = () => { body.querySelector('.ng').dataset.mode = vals.mode; };
     body.querySelectorAll('.seg').forEach((sg) => sg.addEventListener('click', (e) => {
       const b = e.target.closest('[data-v]');
@@ -407,6 +429,7 @@
       const opts = { mode: vals.mode, level: vals.level, mySide: vals.mySide };
       if (id === 'chess') { /* 기본값 */ }
       if (id === 'baduk') { opts.size = +vals.size; if (opts.mySide !== 'random') opts.mySide = +opts.mySide; }
+      if (id === 'omok') { opts.rule = vals.rule; if (opts.mySide !== 'random') opts.mySide = +opts.mySide; }
       if (id === 'janggi') {
         if (vals.mode === 'ai') { opts.setupCho = vals.setupMine; opts.setupHan = vals.setupMine; }
         else { opts.setupCho = vals.setupCho; opts.setupHan = vals.setupHan; }
@@ -439,6 +462,7 @@
     let html = '';
     if (G.id === 'chess') html = drawChess();
     else if (G.id === 'janggi') html = drawJanggi();
+    else if (G.id === 'omok') html = drawOmok();
     else html = drawGo();
     svg.innerHTML = SVG_DEFS + html;
   }
@@ -542,6 +566,32 @@
     return h;
   }
 
+  function drawOmok() {
+    const st = G.st, N = st.N;
+    let h = `<rect class="go-bg" x="0" y="0" width="${N + 1}" height="${N + 1}" rx="0.3"/>`;
+    for (let i = 0; i < N; i++) {
+      h += `<line class="go-l" x1="1" y1="${i + 1}" x2="${N}" y2="${i + 1}"/><line class="go-l" x1="${i + 1}" y1="1" x2="${i + 1}" y2="${N}"/>`;
+    }
+    for (const [r, c] of [[3, 3], [3, 11], [11, 3], [11, 11], [7, 7]]) h += `<circle class="go-star" cx="${c + 1}" cy="${r + 1}" r="0.12"/>`;
+    const win = new Set(st.winLine || []);
+    for (let p = 0; p < N * N; p++) {
+      const v = st.b[p], x = (p % N) + 1, y = Math.floor(p / N) + 1;
+      if (!v) continue;
+      h += `<circle class="stone ${v === 1 ? 'sb' : 'sw'}" cx="${x}" cy="${y}" r="0.47"/>` + (v === 1 ? `<ellipse class="glint" cx="${x - 0.15}" cy="${y - 0.17}" rx="0.13" ry="0.08" transform="rotate(-35 ${x - 0.15} ${y - 0.17})"/>` : '');
+      if (win.has(p)) h += `<circle class="win-ring" cx="${x}" cy="${y}" r="0.3"/>`;
+    }
+    if (st.last >= 0 && !st.winner) h += `<circle class="go-last ${st.b[st.last] === 1 ? 'on-b' : 'on-w'}" cx="${(st.last % N) + 1}" cy="${Math.floor(st.last / N) + 1}" r="0.16"/>`;
+    // 흑 차례(사람)일 때 금수 자리를 × 로 표시
+    if (!G.over && !(G.opts.mode === 'ai' && st.turn !== G.opts.mySide)) {
+      for (const p of OmokEngine.forbiddenPoints(st)) {
+        const x = (p % N) + 1, y = Math.floor(p / N) + 1;
+        h += `<path class="ban" d="M${x - 0.2} ${y - 0.2}L${x + 0.2} ${y + 0.2}M${x + 0.2} ${y - 0.2}L${x - 0.2} ${y + 0.2}"/>`;
+      }
+    }
+    if (typeof G.hint === 'number' && G.hint >= 0) h += `<circle class="go-hint" cx="${(G.hint % N) + 1}" cy="${Math.floor(G.hint / N) + 1}" r="0.42"/>`;
+    return h;
+  }
+
   function renderStatus() {
     if (!G) return;
     $('bg-title').textContent = t(`tab.${G.id}`);
@@ -565,6 +615,8 @@
     } else if (G.id === 'janggi') {
       const p = JanggiEngine.points(G.st);
       info = t('bg.points', { c: p.c, h: p.h });
+    } else if (G.id === 'omok') {
+      info = `${t(`omok.rule.${G.st.rule}`)} · ${t('bg.moves', { n: G.st.moves })}`;
     } else {
       if (G.scoring && !G.scoring.loading) { const sc = GoEngine.score(G.st, G.scoring.dead); info = t('bg.scoreLine', { b: sc.black, w: sc.white }); }
       else info = t('bg.goCaps', { b: G.st.captures[1], w: G.st.captures[2], k: GoEngine.KOMI });
@@ -582,7 +634,7 @@
       return;
     }
     tools.className = 'tools bg-tools';
-    const passBtn = G.id === 'chess' ? '' : `<button class="tool" data-tool="pass"><span class="ti">${ICON.pass}</span><span>${t(`tool.pass.${G.id}`)}</span></button>`;
+    const passBtn = G.id === 'chess' || G.id === 'omok' ? '' : `<button class="tool" data-tool="pass"><span class="ti">${ICON.pass}</span><span>${t(`tool.pass.${G.id}`)}</span></button>`;
     tools.innerHTML = `<button class="tool" data-tool="undo"><span class="ti">${ICON.undo}</span><span>${t('tool.takeback')}</span></button>
       <button class="tool" data-tool="hint"><span class="ti">${ICON.bulb}</span><span>${t('tool.hint')}</span></button>
       ${passBtn}
@@ -598,6 +650,7 @@
       const o = G.opts;
       let s = o.mode === 'ai' ? `${t('bg.mode.ai')} · ${levelName(o.level)} · ${t('bg.mySide')}: ${sideName(id, o.mySide)}` : t('bg.mode.pvp');
       if (id === 'baduk') s += ` · ${t('bg.lines', { n: o.size })}`;
+      if (id === 'omok') s += ` · ${t(`omok.rule.${o.rule}`)}`;
       if (id === 'janggi') s += ` · ${o.setupCho} / ${o.setupHan}`;
       document.querySelectorAll('#bg-mode [data-mode]').forEach((b) => b.classList.toggle('active', b.dataset.mode === o.mode));
       $('bg-side-sum').textContent = s;

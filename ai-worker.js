@@ -1,5 +1,5 @@
 /* 체스·장기·바둑 컴퓨터를 화면과 따로(백그라운드에서) 계산 */
-importScripts('chess-engine.js', 'janggi-engine.js', 'go-engine.js');
+importScripts('chess-engine.js', 'janggi-engine.js', 'go-engine.js', 'omok-engine.js');
 
 function rebuild(game, opts, moves) {
   if (game === 'chess') {
@@ -12,12 +12,18 @@ function rebuild(game, opts, moves) {
     for (const m of moves) JanggiEngine.play(st, m);
     return st;
   }
+  if (game === 'omok') {
+    const st = OmokEngine.create(opts.rule);
+    for (const p of moves) OmokEngine.play(st, p);
+    return st;
+  }
   const st = GoEngine.create(opts.size);
   for (const p of moves) GoEngine.play(st, p);
   return st;
 }
 
 function think(game, st, level, task) {
+  if (game === 'omok') return OmokEngine.bestMove(st, level);
   if (game === 'go' || game === 'baduk') {
     if (task === 'dead') return GoEngine.estimateDead(st, 400);
     return GoEngine.bestMove(st, level);
