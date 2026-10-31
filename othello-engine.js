@@ -123,12 +123,13 @@
     if (root.length === 1) return root[0];
     let scored = root.map((p) => ({ p, s: W[p] })).sort((x, y) => y.s - x.s);
     const exact = empties() <= (opts.exact || 0);
+    const noise = Math.max(opts.noise || 0, st.moves < 10 ? 4 : 0); // 초반 다양성
     for (let d = 1; d <= (exact ? 1 : opts.depth); d++) {
       const cur = [];
       let alpha = -Infinity;
       for (const { p } of scored) {
         const f = apply(p, me);
-        const sc = -negamax(other(me), d - 1, -Infinity, -alpha + (opts.noise || 0), false, exact);
+        const sc = -negamax(other(me), d - 1, -Infinity, -alpha + noise, false, exact);
         undo(p, f, me);
         if (stop) break;
         cur.push({ p, s: sc });
@@ -137,7 +138,7 @@
       if (stop) { if (cur.length) { const done = new Set(cur.map((x) => x.p)); scored = [...cur.sort((x, y) => y.s - x.s), ...scored.filter((x) => !done.has(x.p))]; } break; }
       scored = cur.map((x, i) => ({ ...x, i })).sort((x, y) => y.s - x.s || x.i - y.i);
     }
-    const top = scored[0].s, noise = opts.noise || 0;
+    const top = scored[0].s;
     if (!noise) return scored[0].p;
     const pool = scored.filter((x) => x.s > top - noise);
     return pool[Math.floor(Math.random() * pool.length)].p;
@@ -148,11 +149,11 @@
     easy: { depth: 2, noise: 20, timeMs: 500 },
     medium: { depth: 4, timeMs: 1200, exact: 8 },
     hard: { depth: 6, timeMs: 2500, exact: 12 },
-    expert: { depth: 8, timeMs: 4500, exact: 14 },
+    expert: { depth: 10, timeMs: 6000, exact: 16 }, // 끝 16수는 끝까지 완전히 읽음
   };
   const bestMove = (st, level) => search(st, LEVELS[level] || LEVELS.medium);
 
-  const api = { N, BLACK, WHITE, create, flips, legalMoves, play, status, count, bestMove };
+  const api = { LEVELS, N, BLACK, WHITE, create, flips, legalMoves, play, status, count, bestMove };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.OthelloEngine = api;
 })(typeof self !== 'undefined' ? self : this);

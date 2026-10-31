@@ -73,7 +73,7 @@
     const own = floodGroup(b, N, p);
     if (own.libs === 0) { b[p] = EMPTY; return false; } // 자충수
     const newKo = captured === 1 && own.size === 1 && own.libs === 1 ? lastCap : -1;
-    return { captured, ko: newKo };
+    return { captured, ko: newKo, libs: own.libs, size: own.size };
   }
 
   function play(st, p) {
@@ -195,6 +195,7 @@
         if (b[p] !== EMPTY || p === ko || isEye(b, N, p, turn)) continue;
         const res = place(b, N, p, turn, ko);
         if (!res) continue;
+        if (res.libs === 1 && !res.captured && Math.random() < 0.9) { b[p] = EMPTY; continue; } // 자충(스스로 단수) 피하기
         ko = res.ko; chosen = p;
         break;
       }
@@ -231,35 +232,102 @@
     return out;
   }
 
+  /* 바둑 상식으로 매긴 수의 점수 (사전 지식) */
+  function urgentPoints(b, N) {
+    const total = N * N, map = new Map(), seen = new Uint8Array(total);
+    for (let p = 0; p < total; p++) {
+      if (!b[p] || seen[p]) continue;
+      const g = floodGroup(b, N, p);
+      for (let i = 0; i < g.size; i++) seen[work.group[i]] = 1;
+      if (g.libs === 1) map.set(work.lastLib, (map.get(work.lastLib) || 0) + g.size);
+    }
+    return map;
+  }
+  function heuristic(b, N, p, turn, ko, moveNo, urgent) {
+    const r = Math.floor(p / N), c = p % N;
+    const line = Math.min(r, c, N - 1 - r, N - 1 - c); // 0 = 1선
+    const early = moveNo < N * N * (N >= 13 ? 0.12 : 0.15);
+    let s = 0;
+    if (urgent.has(p)) s += 2 + Math.min(3, urgent.get(p) * 0.5);
+    if (N >= 13) {
+      if (line === 0) s -= early ? 4 : 1.5;
+      else if (line === 1) s -= early ? 2 : 0.4;
+      else if (early && (line === 2 || line === 3)) s += 1;
+    } else if (line === 0) s -= early ? 2 : 0.5;
+    // 돌 근처(전투가 있는 곳) 우대, 초반이 지나면 멀리 동떨어진 수는 감점
+    let near = 0;
+    for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) {
+      const rr = r + dr, cc = c + dc;
+      if (rr >= 0 && rr < N && cc >= 0 && cc < N && b[rr * N + cc]) near++;
+    }
+    if (!early) s += near ? 0.6 : -0.8;
+    // 스스로 단수가 되는 수는 크게 감점
+    const copy = Int8Array.from(b);
+    const res = place(copy, N, p, turn, ko);
+    if (res && res.libs === 1 && !res.captured) s -= 3;
+    return s;
+  }
+  // 13·19줄 초반: 비어 있는 귀의 화점·소목 자리
+  function openingMove(st) {
+    const N = st.N;
+    if (N < 13) return -1;
+    let stones = 0;
+    for (let p = 0; p < N * N; p++) if (st.b[p]) stones++;
+    if (stones > 6) return -1;
+    const k = N >= 19 ? 3 : 3, far = N - 1 - k;
+    const corners = [[k, k], [k, far], [far, k], [far, far]];
+    const options = [];
+    for (const [cr, cc] of corners) {
+      // 이 귀 근처(6×6)에 돌이 없으면 빈 귀
+      let busy = false;
+      for (let dr = -3; dr <= 3; dr++) for (let dc = -3; dc <= 3; dc++) {
+        const rr = cr + dr, c2 = cc + dc;
+        if (rr >= 0 && rr < N && c2 >= 0 && c2 < N && st.b[rr * N + c2]) busy = true;
+      }
+      if (busy) continue;
+      const toward = (v) => (v < N / 2 ? v - 1 : v + 1); // 소목: 화점에서 한 칸 바깥쪽
+      for (const [r, c] of [[cr, cc], [toward(cr), cc], [cr, toward(cc)]]) options.push(r * N + c);
+    }
+    return options.length ? options[Math.floor(Math.random() * options.length)] : -1;
+  }
+
   function mcts(st, opts) {
     const N = st.N, total = N * N;
     const deadline = Date.now() + (opts.timeMs || 1000);
     const maxPlayouts = opts.playouts || 1000;
-    const rootMoves = candidateMoves(st.b, N, st.turn, st.ko);
+    const book = openingMove(st);
+    if (book >= 0 && isLegal(st, book)) return { move: book, winrate: 0.5, own: new Float64Array(total), playouts: 0 };
+    let rootMoves = candidateMoves(st.b, N, st.turn, st.ko);
+    const rootUrgent = urgentPoints(st.b, N);
+    const scoreOf = new Map(rootMoves.map((m) => [m, heuristic(st.b, N, m, st.turn, st.ko, st.moves, rootUrgent)]));
+    // 입문: 바둑 상식 점수 상위 몇 수 중에서 고름 (탐색 없이)
+    if (opts.heuristicOnly) {
+      if (!rootMoves.length) return { move: -1, winrate: 0.5, own: new Float64Array(total) };
+      const top = rootMoves.sort((a, c) => scoreOf.get(c) - scoreOf.get(a)).slice(0, opts.pick || 5);
+      return { move: top[Math.floor(Math.random() * top.length)], winrate: 0.5, own: new Float64Array(total) };
+    }
+    // 큰 판은 유력한 후보만 깊게 봄
+    const keep = N >= 19 ? 40 : N >= 13 ? 45 : 81;
+    if (rootMoves.length > keep) rootMoves = rootMoves.sort((a, c) => scoreOf.get(c) - scoreOf.get(a)).slice(0, keep);
     // 둘 곳이 많은 초반에는 패스를 고려하지 않음
     const allowPass = st.passes > 0 || rootMoves.length <= total * 0.25 || st.moves > total * 0.8;
-    const mk = (move, parent, toMove) => ({ move, parent, toMove, n: 0, w: 0, an: 0, aw: 0, kids: null });
+    const mk = (move, parent, toMove) => ({ move, parent, toMove, n: 0, w: 0, rv: 0, an: 0, aw: 0, kids: null });
+    const EXPAND_AT = N >= 13 ? 8 : 2; // 실제로 이만큼 둘러본 수만 다음 단계를 펼침
     // 사전 지식: 단수 걸린 돌을 따내거나 살리는 수는 좋게, 초반의 1선은 나쁘게 시작
-    const withPrior = (node, b, turn, ko, moves) => {
-      const urgent = new Set();
-      for (let p = 0; p < total; p++) {
-        if (!b[p]) continue;
-        const g = floodGroup(b, N, p);
-        if (g.libs === 1) urgent.add(work.lastLib);
-      }
+    const withPrior = (node, b, turn, ko, moves, scores) => {
+      const urgent = scores ? null : urgentPoints(b, N);
       for (const c of node.kids) {
         if (c.move < 0) continue;
-        const r = Math.floor(c.move / N), col = c.move % N;
-        const edge = r === 0 || col === 0 || r === N - 1 || col === N - 1;
-        if (urgent.has(c.move)) { c.n = 20; c.w = 17; }
-        else if (edge && moves < total * 0.4) { c.n = 20; c.w = 4; }
+        const h = scores ? scores.get(c.move) : heuristic(b, N, c.move, turn, ko, moves, urgent);
+        const q = Math.max(0.1, Math.min(0.9, 0.5 + 0.1 * h));
+        c.n = 12; c.w = 12 * q;
       }
       return node;
     };
     const rootNode = mk(null, null, st.turn);
     rootNode.kids = rootMoves.map((m) => mk(m, rootNode, other(st.turn)));
     if (allowPass || !rootMoves.length) rootNode.kids.push(mk(-1, rootNode, other(st.turn)));
-    withPrior(rootNode, st.b, st.turn, st.ko, st.moves);
+    withPrior(rootNode, st.b, st.turn, st.ko, st.moves, scoreOf);
 
     const first = new Int8Array(total), firstGen = new Int32Array(total), own = new Float64Array(total);
     let gen = 0, done = 0;
@@ -294,8 +362,13 @@
         }
         turn = other(turn); node = c; path.push(c);
         if (passes >= 2) break;
-        if (node.n >= 2 && !node.kids) { // 몇 번 방문한 자리에서 펼치기
-          node.kids = candidateMoves(b, N, turn, ko).map((m) => mk(m, node, other(turn)));
+        if (node.rv >= EXPAND_AT && !node.kids) { // 충분히 둘러본 자리에서 펼치기
+          let cand = candidateMoves(b, N, turn, ko);
+          if (N >= 13 && cand.length > 30) {
+            const u = urgentPoints(b, N), mv = st.moves + path.length;
+            cand = cand.map((m) => [m, heuristic(b, N, m, turn, ko, mv, u)]).sort((a, c) => c[1] - a[1]).slice(0, 30).map((x) => x[0]);
+          }
+          node.kids = cand.map((m) => mk(m, node, other(turn)));
           if (!node.kids.length) node.kids.push(mk(-1, node, other(turn)));
           withPrior(node, b, turn, ko, st.moves + path.length);
         }
@@ -305,7 +378,7 @@
       const winner = playout(b, N, turn, ko, first, firstGen, gen, passes >= 2 ? null : own, lastMove == null ? -1 : lastMove);
       done++;
       for (const nd of path) {
-        nd.n++;
+        nd.n++; nd.rv++;
         // 수를 둔 쪽(=부모의 차례) 기준 승리
         if (nd.parent && winner === nd.parent.toMove) nd.w++;
         if (nd.kids) for (const c of nd.kids) {
@@ -325,12 +398,16 @@
         if (g.libs === 1) tactical.set(work.lastLib, (tactical.get(work.lastLib) || 0) + g.size);
       }
     }
-    const maxN = Math.max(...rootNode.kids.map((c) => c.n));
+    const maxN = Math.max(...rootNode.kids.map((c) => c.rv));
     let best = rootNode.kids[0], bestV = -Infinity;
     for (const c of rootNode.kids) {
-      if (c.n < maxN * 0.15) continue;
-      const v = c.w / c.n + (tactical.has(c.move) ? Math.min(0.12, 0.04 * tactical.get(c.move)) : 0);
+      if (c.rv < maxN * (tactical.has(c.move) ? 0.05 : 0.15)) continue; // 따내기·살리기 수는 덜 둘러봤어도 후보로 남김
+      const v = c.w / c.n + (tactical.has(c.move) ? Math.min(0.25, 0.08 + 0.04 * tactical.get(c.move)) : 0);
       if (v > bestV) { bestV = v; best = c; }
+    }
+    if (opts.pickTop) {
+      const ranked = rootNode.kids.filter((c) => c.move >= 0 && c.rv > 0).sort((a, c) => c.rv - a.rv).slice(0, opts.pickTop);
+      if (ranked.length) best = ranked[Math.floor(Math.random() * ranked.length)];
     }
     const winrate = best.n ? best.w / best.n : 0.5;
     for (let p = 0; p < total; p++) own[p] /= Math.max(1, done);
@@ -388,15 +465,15 @@
   }
 
   const LEVELS = {
-    beginner: { playouts: 60, timeMs: 500 },
-    easy: { playouts: 250, timeMs: 1000 },
-    medium: { playouts: 1000, timeMs: 2000 },
-    hard: { playouts: 3000, timeMs: 4000 },
-    expert: { playouts: 8000, timeMs: 7000 },
+    beginner: { heuristicOnly: true, pick: 6 },  // 바둑 상식 상위 6수 중 하나 (탐색 없음)
+    easy: { playouts: 200, timeMs: 1000, pickTop: 3 },  // 적게 보고, 상위 3수 중 하나
+    medium: { playouts: 1500, timeMs: 2500 },
+    hard: { playouts: 6000, timeMs: 5000 },
+    expert: { playouts: 15000, timeMs: 8000 },
   };
   const bestMove = (st, level) => mcts(st, LEVELS[level] || LEVELS.medium).move;
 
-  const api = { EMPTY, BLACK, WHITE, KOMI, create, play, isLegal, score, estimateDead, groupAt, bestMove, mcts };
+  const api = { LEVELS, EMPTY, BLACK, WHITE, KOMI, create, play, isLegal, score, estimateDead, groupAt, bestMove, mcts };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.GoEngine = api;
 })(typeof self !== 'undefined' ? self : this);

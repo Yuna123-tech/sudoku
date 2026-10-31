@@ -213,14 +213,75 @@
       b[x.p] = opp; const w = fiveAt(st, b, x.p, opp); b[x.p] = 0;
       if (w) return x.p;
     }
+    // VCF: 4를 연속으로 만들어 상대가 막기만 하다 지는 수순 찾기
+    const fivePoints = (color) => {
+      const out = [];
+      for (const p of candidates(b, 1)) {
+        if (st.rule === 'renju' && color === BLACK && forbiddenReason(b, p)) continue;
+        b[p] = color; if (fiveAt(st, b, p, color)) out.push(p); b[p] = 0;
+      }
+      return out;
+    };
+    const vcfDeadline = Date.now() + (opts.timeMs || 1000) * 0.45; // VCF는 생각 시간의 절반 이내
+    function vcf(color, depth) {
+      if (depth <= 0 || Date.now() > vcfDeadline) return -1;
+      const opp = other(color);
+      if (fivePoints(opp).length) return -1; // 상대가 먼저 5목을 만들 수 있으면 4로 몰 수 없음
+      for (const p of candidates(b, 1)) {
+        if (st.rule === 'renju' && color === BLACK && forbiddenReason(b, p)) continue;
+        b[p] = color;
+        if (fiveAt(st, b, p, color)) { b[p] = 0; return p; }
+        const threats = fivePoints(color);
+        let win = false;
+        if (threats.length >= 2) win = true; // 막을 곳이 두 군데 → 승리
+        else if (threats.length === 1) {
+          const q = threats[0];
+          if (st.rule === 'renju' && opp === BLACK && forbiddenReason(b, q)) win = true; // 흑이 금수라 못 막음
+          else { b[q] = opp; win = !fiveAt(st, b, q, opp) && vcf(color, depth - 1) >= 0; b[q] = 0; }
+        }
+        b[p] = 0;
+        if (win) return p;
+      }
+      return -1;
+    }
+    if (opts.vcf) {
+      const w = vcf(me, opts.vcf);
+      if (w >= 0) return w;
+      // 상대에게 VCF가 있으면 그것을 막는 수를 고름
+      if (vcf(opp, opts.vcf) >= 0) {
+        for (const x of top.slice(0, 15)) {
+          b[x.p] = me;
+          const still = vcf(opp, opts.vcf) >= 0;
+          b[x.p] = 0;
+          if (!still) return x.p;
+        }
+      }
+    }
     if (opts.depth <= 1) {
       const pool = top.slice(0, opts.pick || 1);
       return pool[Math.floor(Math.random() * pool.length)].p;
     }
     let stop = false;
+    // 탐색 끝에서: 내 차례에 바로 5목이 되면 이긴 판, 상대가 5목 자리가 두 곳 이상이면(막을 수 없음) 진 판
+    function leaf(color) {
+      const opp = other(color);
+      let oppFives = 0;
+      for (const p of candidates(b, 1)) {
+        if (!(st.rule === 'renju' && color === BLACK && forbiddenReason(b, p))) {
+          b[p] = color; const w = fiveAt(st, b, p, color); b[p] = 0;
+          if (w) return 1e8;
+        }
+        if (!(st.rule === 'renju' && opp === BLACK && forbiddenReason(b, p))) {
+          b[p] = opp; const w = fiveAt(st, b, p, opp); b[p] = 0;
+          if (w) oppFives++;
+        }
+      }
+      if (oppFives >= 2) return -1e8;
+      return evaluate(st, b, color);
+    }
     function negamax(color, depth, alpha, beta) {
       if (Date.now() > deadline) { stop = true; return 0; }
-      if (depth === 0) return evaluate(st, b, color);
+      if (depth === 0) return leaf(color);
       const moves = ranked(st, b, color, 1).slice(0, opts.width || 8);
       if (!moves.length) return 0;
       let best = -Infinity;
@@ -236,6 +297,11 @@
       }
       return best;
     }
+    // 초반(흑 첫 수 제외 6수까지)에는 비슷하게 좋은 수 중 무작위 → 판마다 다른 진행
+    if (st.moves > 0 && st.moves < 6 && top.length > 1) {
+      const near = top.filter((x) => x.s >= top[0].s * 0.85).slice(0, 4);
+      return near[Math.floor(Math.random() * near.length)].p;
+    }
     let bestP = top[0].p;
     for (let depth = 2; depth <= opts.depth; depth += 2) {
       let alpha = -Infinity, cur = null;
@@ -249,19 +315,20 @@
       if (stop) break;
       if (cur != null) bestP = cur;
     }
+    if (opts.blunder && Math.random() < opts.blunder && top.length > 1) return top[1].p; // 가끔 최선이 아닌 수
     return bestP;
   }
 
   const LEVELS = {
-    beginner: { depth: 1, pick: 6, defense: 0.4, timeMs: 300 },
-    easy: { depth: 1, pick: 2, defense: 0.8, timeMs: 400 },
-    medium: { depth: 1, pick: 1, defense: 1, timeMs: 600 },
-    hard: { depth: 2, width: 8, defense: 1, timeMs: 2000 },
-    expert: { depth: 4, width: 8, defense: 1, timeMs: 4000 },
+    beginner: { depth: 1, pick: 6, defense: 0.3, timeMs: 300 },            // 대충 보고 상위 6수 중 하나
+    easy: { depth: 1, pick: 2, defense: 1, timeMs: 400 },                  // 공격·수비를 보고 상위 2수 중 하나
+    medium: { depth: 2, width: 8, defense: 1, timeMs: 1500, blunder: 0.25 }, // 상대의 다음 수까지 봄, 가끔 실수
+    hard: { depth: 2, width: 10, defense: 1, timeMs: 3000, vcf: 6, blunder: 0.1 }, // + 짧은 연속 4(VCF) 공격·수비, 드물게 실수
+    expert: { depth: 2, width: 14, defense: 1, timeMs: 6000, vcf: 14 },    // + 긴 VCF, 더 넓게
   };
   const bestMove = (st, level) => search(st, LEVELS[level] || LEVELS.medium);
 
-  const api = { N, BLACK, WHITE, create, play, isLegal, forbidden, forbiddenReason, forbiddenPoints, status, bestMove };
+  const api = { LEVELS, N, BLACK, WHITE, create, play, isLegal, forbidden, forbiddenReason, forbiddenPoints, status, bestMove };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.OmokEngine = api;
 })(typeof self !== 'undefined' ? self : this);

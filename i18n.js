@@ -153,7 +153,7 @@ Object.assign(window.I18N.ko, {
   'bg.confirmResign': '기권할까요?', 'bg.confirmNew': '진행 중인 대국을 끝내고 새로 시작할까요?',
   'bg.promote': '어떤 기물로 바꿀까요?', 'bg.promoteTitle': '프로모션',
   'bg.points': '초 {c}점 · 한 {h}점 (덤 1.5)', 'bg.goCaps': '따낸 돌 흑 {b} · 백 {w} · 덤 {k}',
-  'bg.scoring': '죽은 돌을 눌러 표시한 뒤 계가하세요', 'bg.counting': '계가 중', 'bg.official': ' (정식)', 'bg.selfCheck.janggi': '거기로 가면 내 궁이 잡히는 자리(장군)가 돼서 둘 수 없어요. 그 말은 다른 상대 말이 지키고 있어요', 'bg.selfCheck.chess': '거기로 가면 내 킹이 체크를 받게 돼서 둘 수 없어요', 'bg.beginnerSize': ' (입문)', 'bg.tapAgain': '칸이 작아서 미리 보여 드려요. 같은 곳을 한 번 더 누르면 놓아져요', 'bg.count': '계가하기', 'bg.resume': '이어 두기',
+  'bg.scoring': '죽은 돌을 눌러 표시한 뒤 계가하세요', 'bg.counting': '계가 중', 'bg.official': ' (정식)', 'bg.review': '복기', 'bg.reviewOf': '복기 {n}/{total}수', 'tool.first': '처음', 'tool.prev': '이전', 'tool.next': '다음', 'tool.last': '끝', 'tool.endReview': '복기 끝', 'tool.claim': '무승부', 'bg.claimAvail.claimRepetition': '같은 모양이 3번 나왔어요. 원하면 [무승부]를 눌러 비길 수 있어요', 'bg.claimAvail.claimFifty': '50수 동안 잡거나 폰을 움직이지 않았어요. 원하면 [무승부]를 누를 수 있어요', 'r.claimRepetition': '3회 반복 무승부 요청', 'r.claimFifty': '50수 규칙 무승부 요청', 'r.fivefold': '같은 모양 5번 반복 (자동 무승부)', 'r.seventyfive': '75수 규칙 (자동 무승부)', 'r.bothPass': '양쪽 연속 한수쉼 → 점수 판정', 'bg.repeat4': '같은 수(모양)를 4번 반복하는 것은 반칙이라 둘 수 없어요', 'bg.selfCheck.janggi': '거기로 가면 내 궁이 잡히는 자리(장군)가 돼서 둘 수 없어요. 그 말은 다른 상대 말이 지키고 있어요', 'bg.selfCheck.chess': '거기로 가면 내 킹이 체크를 받게 돼서 둘 수 없어요', 'bg.beginnerSize': ' (입문)', 'bg.tapAgain': '칸이 작아서 미리 보여 드려요. 같은 곳을 한 번 더 누르면 놓아져요', 'bg.count': '계가하기', 'bg.resume': '이어 두기',
   'bg.scoreLine': '흑 {b}집 · 백 {w}집', 'bg.goResult': '{side} {m}집 승',
   'bg.passed': '{side} 패스', 'bg.cantPass': '장군을 받은 상태에서는 한수쉼을 할 수 없어요', 'bg.illegal': '둘 수 없는 자리예요',
   'bg.noHint': '추천할 수를 찾지 못했어요', 'bg.hintPass': '추천: 패스(한수쉼)',
@@ -161,8 +161,8 @@ Object.assign(window.I18N.ko, {
   'bg.pvpGames': '둘이서 대국 {n}판', 'bg.recent': '최근 대국', 'bg.noGames': '아직 대국 기록이 없어요.', 'bg.moves': '{n}수',
   'bg.resultWin': '승', 'bg.resultLoss': '패', 'bg.resultDraw': '무',
   'bg.rules': '규칙',
-  'rules.chess': '<ul class="steps"><li>상대 <b>킹</b>을 피할 수 없게 잡는 위치(<b>체크메이트</b>)를 만들면 이겨요.</li><li>캐슬링, 앙파상, 프로모션(폰이 끝에 닿으면 다른 기물로 변신)을 모두 쓸 수 있어요.</li><li>둘 수가 없는데 체크가 아니면 <b>스테일메이트</b>로 무승부예요. 50수 규칙, 3회 반복, 기물 부족도 무승부예요.</li></ul>',
-  'rules.janggi': '<ul class="steps"><li>상대 <b>궁</b>을 피할 수 없게 잡으면(<b>외통</b>) 이겨요. 초가 먼저 둬요.</li><li><b>포</b>는 다른 기물 하나를 넘어서만 움직이고, 포끼리는 넘거나 잡을 수 없어요. <b>마·상</b>은 길목이 막히면(멱) 못 가요.</li><li>궁·사는 궁성 안에서만, 궁성 대각선을 따라서도 움직여요. 장군이 아닐 때는 <b>한수쉼</b>을 할 수 있어요.</li><li><b>빅장</b>(두 궁이 마주 봄)을 피하지 않거나 200수가 되면 남은 기물 점수로 판정해요. (차13·포7·마5·상3·사3·졸2, 한 덤 1.5)</li></ul>',
+  'rules.chess': '<ul class="steps"><li>상대 <b>킹</b>을 피할 수 없게 잡는 위치(<b>체크메이트</b>)를 만들면 이겨요.</li><li>캐슬링, 앙파상, 프로모션(폰이 끝에 닿으면 다른 기물로 변신)을 모두 쓸 수 있어요.</li><li>둘 수가 없는데 체크가 아니면 <b>스테일메이트</b>로 무승부예요. 3회 반복·50수는 [무승부]로 요청할 수 있고, 5회 반복·75수·기물 부족은 자동 무승부예요.</li></ul>',
+  'rules.janggi': '<ul class="steps"><li>상대 <b>궁</b>을 피할 수 없게 잡으면(<b>외통</b>) 이겨요. 초가 먼저 둬요.</li><li><b>포</b>는 다른 기물 하나를 넘어서만 움직이고, 포끼리는 넘거나 잡을 수 없어요. <b>마·상</b>은 길목이 막히면(멱) 못 가요.</li><li>궁·사는 궁성 안에서만, 궁성 대각선을 따라서도 움직여요. 장군이 아닐 때는 <b>한수쉼</b>을 할 수 있어요.</li><li><b>빅장</b>(기물을 잡은 뒤 두 궁이 마주 봄)을 피하지 않거나, 양쪽이 연속 한수쉼을 하면 남은 기물 점수로 판정해요. (차13·포7·마5·상3·사3·졸2, 한 덤 1.5) 같은 수 4번째 반복은 반칙이에요.</li></ul>',
   'rules.baduk': '<ul class="steps"><li>번갈아 돌을 놓고, 둘러싼 <b>집</b>이 많은 쪽이 이겨요. 흑이 먼저 두고 백은 <b>덤 6.5집</b>을 받아요.</li><li>활로가 모두 막힌 돌은 따내요. 활로가 없는 자리(<b>자충수</b>)에는 둘 수 없어요.</li><li><b>패</b>: 방금 따낸 한 점을 바로 되따낼 수 없어요. 다른 곳에 한 수 둔 뒤엔 가능해요.</li><li>둘 다 연속으로 <b>패스</b>하면 끝나요. 죽은 돌을 표시한 뒤 <b>계가</b>(집 + 따낸 돌)로 승부를 가려요.</li></ul>',
 });
 Object.assign(window.I18N.en, {
@@ -192,7 +192,7 @@ Object.assign(window.I18N.en, {
   'bg.confirmResign': 'Resign this game?', 'bg.confirmNew': 'End the current game and start a new one?',
   'bg.promote': 'Promote the pawn to:', 'bg.promoteTitle': 'Promotion',
   'bg.points': 'Cho {c} · Han {h} (komi 1.5)', 'bg.goCaps': 'Captures B {b} · W {w} · komi {k}',
-  'bg.scoring': 'Tap dead stones, then count', 'bg.counting': 'Counting', 'bg.official': ' (standard)', 'bg.selfCheck.janggi': 'That move would leave your general in check — the piece is protected', 'bg.selfCheck.chess': 'That move would leave your king in check', 'bg.beginnerSize': ' (beginner)', 'bg.tapAgain': 'Small board: tap the same point again to place your stone', 'bg.count': 'Count', 'bg.resume': 'Resume',
+  'bg.scoring': 'Tap dead stones, then count', 'bg.counting': 'Counting', 'bg.official': ' (standard)', 'bg.review': 'Review', 'bg.reviewOf': 'Review {n}/{total}', 'tool.first': 'Start', 'tool.prev': 'Back', 'tool.next': 'Next', 'tool.last': 'End', 'tool.endReview': 'Done', 'tool.claim': 'Draw', 'bg.claimAvail.claimRepetition': 'Threefold repetition: you may press [Draw] to claim a draw', 'bg.claimAvail.claimFifty': '50 moves without capture or pawn move: you may press [Draw]', 'r.claimRepetition': 'Draw claimed (threefold repetition)', 'r.claimFifty': 'Draw claimed (50-move rule)', 'r.fivefold': 'Fivefold repetition (automatic draw)', 'r.seventyfive': '75-move rule (automatic draw)', 'r.bothPass': 'Both passed → decided on points', 'bg.repeat4': 'Repeating the same position a 4th time is a foul — not allowed', 'bg.selfCheck.janggi': 'That move would leave your general in check — the piece is protected', 'bg.selfCheck.chess': 'That move would leave your king in check', 'bg.beginnerSize': ' (beginner)', 'bg.tapAgain': 'Small board: tap the same point again to place your stone', 'bg.count': 'Count', 'bg.resume': 'Resume',
   'bg.scoreLine': 'Black {b} · White {w}', 'bg.goResult': '{side} wins by {m}',
   'bg.passed': '{side} passed', 'bg.cantPass': "You can't pass while in check", 'bg.illegal': "You can't play there",
   'bg.noHint': 'No suggestion found', 'bg.hintPass': 'Suggestion: pass',

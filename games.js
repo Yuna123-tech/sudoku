@@ -120,12 +120,15 @@
   };
 
   function rebuild() {
+    const upto = G.review ? G.review.idx : G.moves.length;
     G.st = G.def.create(G.opts);
-    for (const m of G.moves) G.def.apply(G.st, m);
+    for (const m of G.moves.slice(0, upto)) G.def.apply(G.st, m);
   }
+  // 화면에 보이는(복기 중이면 그 시점까지의) 수 목록
+  const shownMoves = () => (G.review ? G.moves.slice(0, G.review.idx) : G.moves);
 
   function persist() {
-    if (!G) return;
+    if (!G || G.pastReview) return; // 지난 대국 복기 중에는 저장된 대국을 건드리지 않음
     if (G.over) { delete data.saves[G.id]; saveData(); return; }
     data.saves[G.id] = { opts: G.opts, moves: G.moves, elapsed: G.elapsed, hints: G.hints, scoring: G.scoring ? { dead: G.scoring.dead } : null };
     saveData();
@@ -200,7 +203,13 @@
   }
 
   async function aiMove() {
-    if (!G || G.over || G.scoring) return;
+    if (!G || G.over || G.scoring || G.review) return;
+    // 체스: 무승부를 요청할 수 있고 컴퓨터가 기물에서 밀리면 무승부를 요청
+    if (G.id === 'chess') {
+      const why = ChessEngine.claimable(G.st);
+      const mat = ChessEngine.material(G.st) * (G.st.turn === 'w' ? 1 : -1);
+      if (why && mat < -100) { finish(null, why); return; }
+    }
     G.thinking = true;
     renderStatus();
     if (G.id === 'othello') renderBoard();
@@ -228,6 +237,7 @@
     const s = G.def.status(st);
     if (s) finish(s.winner, G.id === 'janggi' && (s.reason === 'checkmate' || s.reason === 'repetition') ? `janggi.${s.reason}` : s.reason, s);
     else if (G.def.inCheck(st)) toast(t(`bg.check.${G.id}`));
+    else if (G.id === 'chess' && ChessEngine.claimable(st) && !isAiTurn()) toast(t(`bg.claimAvail.${ChessEngine.claimable(st)}`));
     persist();
     render();
     if (!G.over && isAiTurn()) aiMove();
@@ -247,8 +257,9 @@
       rec.pvp = (rec.pvp || 0) + 1;
       result = 'pvp';
     }
-    data.recent.unshift({ game: G.id, mode: G.opts.mode, level: G.opts.level, result, winner, reason, moves: G.moves.length, time: G.elapsed, date: Date.now() });
+    data.recent.unshift({ game: G.id, mode: G.opts.mode, level: G.opts.level, result, winner, reason, moves: G.moves.length, time: G.elapsed, date: Date.now(), opts: G.opts, list: G.moves.slice(), mySide: G.opts.mySide });
     data.recent = data.recent.slice(0, 100);
+    data.recent.forEach((x, i) => { if (i >= 30) { delete x.list; delete x.opts; } }); // 복기용 수 목록은 최근 30판만
     persist();
     render();
     showOverlay(overResult);
@@ -267,7 +278,7 @@
       detail = `${t('bg.scoreLine', { b: sc.black, w: sc.white })}<br><b>${t('bg.goResult', { side: sideName('baduk', sc.winner), m: sc.margin })}</b>`;
     }
     return `<h3>${head}</h3><p>${detail}<br>${t('bg.moves', { n: G.moves.length })} · ${fmt(G.elapsed)}</p>
-      <div class="actions"><button class="btn primary" data-act="bg-new">${t('bg.newGame')}</button><button class="btn" data-act="bg-records">${t('top.records')}</button></div>`;
+      <div class="actions"><button class="btn primary" data-act="bg-new">${t('bg.newGame')}</button><button class="btn" data-act="bg-review">${t('bg.review')}</button></div>`;
   }
 
   /* ---------- 바둑 계가 ---------- */
@@ -368,6 +379,7 @@
     const own = G.id === 'chess' ? ChessEngine.colorOf(st.b[i]) === me : st.b[i] && st.b[i][0] === me;
     const tgt = G.targets.filter((m) => m.to === i);
     if (G.sel >= 0 && tgt.length) {
+      if (G.id === 'janggi' && JanggiEngine.repeatsTooMuch(st, tgt[0])) { toast(t('bg.repeat4')); return; }
       if (tgt.length > 1) return askPromotion(tgt[0]);
       commit({ from: tgt[0].from, to: tgt[0].to, promo: tgt[0].promo || null });
       return;
@@ -423,9 +435,19 @@
     render();
   }
 
+  function claimDraw() {
+    if (!G || G.over || G.id !== 'chess') return;
+    const why = ChessEngine.claimable(G.st);
+    if (why) finish(null, why);
+  }
+
   function pass() {
     if (!G || G.over || G.thinking || G.scoring || isAiTurn()) return;
-    if (G.id === 'janggi') { if (!G.def.canPass(G.st)) { toast(t('bg.cantPass')); return; } commit({ pass: true }); }
+    if (G.id === 'janggi') {
+      if (!G.def.canPass(G.st)) { toast(t('bg.cantPass')); return; }
+      if (JanggiEngine.repeatsTooMuch(G.st, { pass: true })) { toast(t('bg.repeat4')); return; }
+      commit({ pass: true });
+    }
     else if (G.id === 'baduk') commit(-1);
   }
 
@@ -437,6 +459,50 @@
     const winner = G.def.sides[0] === loser ? G.def.sides[1] : G.def.sides[0];
     G.scoring = null;
     finish(winner, 'resign');
+  }
+
+  /* ---------- 복기 ---------- */
+  function startReview() {
+    if (!G || !G.over || !G.moves.length) return;
+    G.review = { idx: 0 };
+    hideOverlay();
+    rebuild();
+    render();
+  }
+  // 기록 화면의 지난 대국 복기
+  function reviewPast(rec) {
+    reqId++;
+    const prev = G && !G.pastReview ? G : (G && G.prevGame) || null;
+    if (prev) persist();
+    G = { id: rec.game, def: DEFS[rec.game], opts: rec.opts, moves: rec.list.slice(), elapsed: rec.time || 0, hints: 0,
+      over: { winner: rec.winner, reason: rec.reason, extra: null }, sel: -1, targets: [], hint: null, thinking: false, scoring: null, paused: false,
+      review: { idx: 0 }, pastReview: true, prevGame: prev };
+    hideOverlay();
+    rebuild();
+    render();
+  }
+  function stepReview(where) {
+    if (!G || !G.review) return;
+    const n = G.moves.length;
+    const idx = where === 'first' ? 0 : where === 'last' ? n : where === 'prev' ? Math.max(0, G.review.idx - 1) : Math.min(n, G.review.idx + 1);
+    if (idx === G.review.idx) return;
+    G.review.idx = idx;
+    rebuild();
+    render();
+  }
+  function endReview() {
+    if (!G || !G.review) return;
+    if (G.pastReview) {
+      const prev = G.prevGame;
+      G = null;
+      if (prev) { G = prev; rebuild(); render(); if (G.over) showOverlay(overResult); else if (isAiTurn()) aiMove(); }
+      else if (!resumeGame(data.game)) startGame(data.game, data.opts[data.game] || {});
+      return;
+    }
+    G.review = null;
+    rebuild();
+    render();
+    showOverlay(overResult);
   }
 
   /* ---------- 새 대국 설정 ---------- */
@@ -513,7 +579,7 @@
   }
 
   function drawChess() {
-    const st = G.st, f = flipped(), last = G.moves.length ? G.moves[G.moves.length - 1] : null;
+    const st = G.st, f = flipped(), sm = shownMoves(), last = sm.length ? sm[sm.length - 1] : null;
     const pos = (s) => { let r = s >> 3, c = s & 7; if (f) { r = 7 - r; c = 7 - c; } return [c, r]; };
     let h = '';
     for (let s = 0; s < 64; s++) {
@@ -554,8 +620,8 @@
       const [x1, y1] = P(r1, c1), [x2, y2] = P(r2, c2);
       h += `<line class="jg-l" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
     }
-    const last = [...G.moves].reverse().find((m) => !m.pass);
-    if (last && G.moves.length) {
+    const last = [...shownMoves()].reverse().find((m) => !m.pass);
+    if (last) {
       for (const i of [last.from, last.to]) { const [x, y] = P(Math.floor(i / 9), i % 9); h += `<circle class="jg-last" cx="${x}" cy="${y}" r="0.46"/>`; }
     }
     if (G.hint && !G.hint.pass) for (const i of [G.hint.from, G.hint.to]) { const [x, y] = P(Math.floor(i / 9), i % 9); h += `<circle class="jg-hint" cx="${x}" cy="${y}" r="0.48"/>`; }
@@ -670,7 +736,8 @@
     $('bg-sub').textContent = G.opts.mode === 'ai' ? t('bg.vsAi', { level: levelName(G.opts.level) }) : t('bg.vsPvp');
     const turn = G.def.turn(G.st);
     let label;
-    if (G.over) label = '';
+    if (G.review) label = t('bg.reviewOf', { n: G.review.idx, total: G.moves.length });
+    else if (G.over) label = '';
     else if (G.thinking) label = t('bg.thinking');
     else if (G.scoring) label = t('bg.counting');
     else if (G.opts.mode === 'ai') label = turn === G.opts.mySide ? t('bg.myTurn') : t('bg.aiTurn');
@@ -708,11 +775,19 @@
       $('bg-count').onclick = confirmScore;
       return;
     }
+    if (G.review) {
+      tools.className = 'tools bg-tools review-tools';
+      tools.innerHTML = [['first', '⏮', 'tool.first'], ['prev', '◀', 'tool.prev'], ['next', '▶', 'tool.next'], ['last', '⏭', 'tool.last'], ['endReview', '✕', 'tool.endReview']]
+        .map(([k, ic, lb]) => `<button class="tool" data-tool="${k}"><span class="ti rv">${ic}</span><span>${t(lb)}</span></button>`).join('');
+      return;
+    }
     tools.className = 'tools bg-tools';
+    const claimBtn = G.id === 'chess' && !G.over && ChessEngine.claimable(G.st) ? `<button class="tool claim" data-tool="claim"><span class="ti">½</span><span>${t('tool.claim')}</span></button>` : '';
     const passBtn = G.id === 'chess' || G.id === 'omok' || G.id === 'othello' ? '' : `<button class="tool" data-tool="pass"><span class="ti">${ICON.pass}</span><span>${t(`tool.pass.${G.id}`)}</span></button>`;
     tools.innerHTML = `<button class="tool" data-tool="undo"><span class="ti">${ICON.undo}</span><span>${t('tool.takeback')}</span></button>
       <button class="tool" data-tool="hint"><span class="ti">${ICON.bulb}</span><span>${t('tool.hint')}</span></button>
       ${passBtn}
+      ${claimBtn}
       <button class="tool" data-tool="resign"><span class="ti">${ICON.flag}</span><span>${t('tool.resign')}</span></button>
       <button class="tool" data-tool="new"><span class="ti">${ICON.plus}</span><span>${t('bg.newGame')}</span></button>`;
   }
@@ -767,7 +842,8 @@
     const recent = data.recent.filter((x) => x.game === id).slice(0, 15).map((x) => {
       const res = x.result === 'pvp' ? (x.winner == null ? t('bg.draw') : t('bg.sideWins', { side: sideName(id, x.winner) })) : t(`bg.result${x.result[0].toUpperCase()}${x.result.slice(1)}`);
       const who = x.mode === 'ai' ? t('bg.vsAi', { level: levelName(x.level) }) : t('bg.vsPvp');
-      return `<div class="list-item"><span><b>${res}</b> · ${who}<br><small>${new Date(x.date).toLocaleString(lang() === 'en' ? 'en-US' : 'ko-KR')}</small></span><small>${t(`r.${x.reason}`)}<br>${t('bg.moves', { n: x.moves })} · ${fmt(x.time)}</small></div>`;
+      const rv = x.list && x.list.length ? `<button type="button" class="btn rv-btn" data-review="${data.recent.indexOf(x)}">${t('bg.review')}</button>` : '';
+      return `<div class="list-item"><span><b>${res}</b> · ${who}<br><small>${new Date(x.date).toLocaleString(lang() === 'en' ? 'en-US' : 'ko-KR')}</small></span><span class="rec-right"><small>${t(`r.${x.reason}`)}<br>${t('bg.moves', { n: x.moves })} · ${fmt(x.time)}</small>${rv}</span></div>`;
     }).join('');
     openDialog(t('bg.records', { game: t(`tab.${id}`) }), `
       <div class="stat-row"><div class="stat"><b>${tw}</b><span>${t('bg.wins')}</span></div><div class="stat"><b>${tl}</b><span>${t('bg.losses')}</span></div><div class="stat"><b>${tn ? Math.round((tw / tn) * 100) + '%' : '–'}</b><span>${t('bg.winRate')}</span></div></div>
@@ -807,7 +883,7 @@
   $('bg-tools').addEventListener('click', (e) => {
     const b = e.target.closest('[data-tool]');
     if (!b) return;
-    ({ undo: takeback, hint, pass, resign, new: () => { if (G && !G.over && G.moves.length && !confirm(t('bg.confirmNew'))) return; newGameDialog(); } })[b.dataset.tool]();
+    ({ undo: takeback, hint, pass, resign, claim: claimDraw, first: () => stepReview('first'), prev: () => stepReview('prev'), next: () => stepReview('next'), last: () => stepReview('last'), endReview, new: () => { if (G && !G.over && G.moves.length && !confirm(t('bg.confirmNew'))) return; newGameDialog(); } })[b.dataset.tool]();
   });
   $('bg-new').onclick = () => { if (G && !G.over && G.moves.length && !confirm(t('bg.confirmNew'))) return; newGameDialog(); };
   $('bg-side-new').onclick = $('bg-new').onclick;
@@ -830,8 +906,28 @@
   $('bg-overlay').addEventListener('click', (e) => {
     const act = e.target.closest('[data-act]')?.dataset.act;
     if (act === 'bg-new') { hideOverlay(); newGameDialog(); }
+    else if (act === 'bg-review') startReview();
     else if (act === 'bg-records') showRecords();
     else if (act === 'bg-resume-pause') togglePause();
+  });
+
+  // 기록 화면에서 복기 버튼
+  $('dlg-body').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-review]');
+    if (!b) return;
+    const rec = data.recent[+b.dataset.review];
+    if (!rec || !rec.list) return;
+    $('dlg').close();
+    if (rec.game !== data.game) switchTo(rec.game);
+    reviewPast(rec);
+  });
+  // 복기 중 방향키로 앞뒤 이동
+  document.addEventListener('keydown', (e) => {
+    if (!G || !G.review || $('dlg').open) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); stepReview('prev'); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); stepReview('next'); }
+    else if (e.key === 'Home') stepReview('first');
+    else if (e.key === 'End') stepReview('last');
   });
 
   setInterval(() => {

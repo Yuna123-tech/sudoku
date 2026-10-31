@@ -203,17 +203,32 @@
     return false;
   }
 
-  /* 결과: null(진행 중) 또는 {winner:'w'|'b'|null, reason} */
+  const repeats = (st) => { const k = st.keys[st.keys.length - 1]; return st.keys.filter((x) => x === k).length; };
+
+  /* 결과: null(진행 중) 또는 {winner:'w'|'b'|null, reason}
+     FIDE: 체크메이트·스테일메이트·기물 부족·5회 반복·75수는 자동으로 끝남 */
   function status(st) {
     const moves = legalMoves(st);
     if (!moves.length) {
       return inCheck(st) ? { winner: st.turn === 'w' ? 'b' : 'w', reason: 'checkmate' } : { winner: null, reason: 'stalemate' };
     }
-    if (st.half >= 100) return { winner: null, reason: 'fifty' };
-    const k = st.keys[st.keys.length - 1];
-    if (st.keys.filter((x) => x === k).length >= 3) return { winner: null, reason: 'repetition' };
     if (insufficient(st)) return { winner: null, reason: 'material' };
+    if (repeats(st) >= 5) return { winner: null, reason: 'fivefold' };
+    if (st.half >= 150) return { winner: null, reason: 'seventyfive' };
     return null;
+  }
+
+  // FIDE: 3회 반복·50수는 선수가 '요청'할 때만 무승부
+  function claimable(st) {
+    if (repeats(st) >= 3) return 'claimRepetition';
+    if (st.half >= 100) return 'claimFifty';
+    return null;
+  }
+  // 기물 점수 차이 (백 - 흑, 폰 = 100)
+  function material(st) {
+    let s = 0;
+    for (const p of st.b) if (p && p.toLowerCase() !== 'k') s += (p === p.toUpperCase() ? 1 : -1) * VAL[p.toLowerCase()];
+    return s;
   }
 
   /* ---------- 컴퓨터 (알파베타 탐색) ---------- */
@@ -255,6 +270,7 @@
   const MATE = 100000;
   function search(st, opts) {
     const deadline = Date.now() + (opts.timeMs || 1000);
+    const noise = Math.max(opts.noise || 0, st.full <= 6 ? 20 : 0); // 초반 다양성
     const maxDepth = opts.depth || 4;
     let nodes = 0, stop = false;
     const order = (moves) => moves.sort((a, b) =>
@@ -308,7 +324,7 @@
       let alpha = -Infinity;
       for (const { m } of scored) {
         const u = make(st, m);
-        const sc = -negamax(d - 1, -Infinity, -alpha + (opts.noise || 0), 1);
+        const sc = -negamax(d - 1, -Infinity, -alpha + noise, 1);
         unmake(st, u);
         if (stop) break;
         cur.push({ m, s: sc });
@@ -324,7 +340,7 @@
     }
     // 낮은 난이도: 최선 수와 점수 차이가 noise 미만인 수 중에서 무작위 (외통수가 보이면 항상 최선 수)
     // (탐색 창 밖으로 잘린 수의 점수는 상한값이라 '미만' 비교로 걸러짐)
-    const top = scored[0].s, noise = opts.noise || 0;
+    const top = scored[0].s;
     if (!noise || top > MATE - 1000) return scored[0].m;
     const pool = scored.filter((x) => x.s > top - noise);
     return pool[Math.floor(Math.random() * pool.length)].m;
@@ -335,11 +351,11 @@
     easy: { depth: 2, timeMs: 500, noise: 90 },
     medium: { depth: 3, timeMs: 1200, noise: 25 },
     hard: { depth: 4, timeMs: 2500, noise: 0 },
-    expert: { depth: 6, timeMs: 4500, noise: 0 },
+    expert: { depth: 6, timeMs: 6000, noise: 0 },
   };
   const bestMove = (st, level) => search(st, LEVELS[level] || LEVELS.medium);
 
-  const api = { create, fromFEN, legalMoves, pseudoMoves, play, make, unmake, inCheck, status, bestMove, key, sqName, colorOf };
+  const api = { LEVELS, create, fromFEN, legalMoves, pseudoMoves, play, make, unmake, inCheck, status, claimable, material, bestMove, key, sqName, colorOf };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ChessEngine = api;
 })(typeof self !== 'undefined' ? self : this);

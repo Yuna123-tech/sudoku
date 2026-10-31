@@ -40,7 +40,9 @@
       ]) +
       H('비기는 경우') + UL([
         '<b>스테일메이트</b>: 체크는 아닌데 둘 수 있는 수가 하나도 없을 때',
-        '50수 동안 잡거나 폰을 움직이지 않았을 때, 같은 모양이 3번 나왔을 때, 체크메이트할 말이 부족할 때',
+        '체크메이트할 말이 양쪽 모두 부족할 때',
+        '같은 모양이 <b>3번</b> 나오거나 <b>50수</b> 동안 잡거나 폰을 움직이지 않으면, 원하는 사람이 <b>[무승부]</b> 버튼을 눌러 비길 수 있어요 (국제체스연맹 규칙).',
+        '같은 모양이 <b>5번</b> 나오거나 <b>75수</b>가 되면 자동으로 무승부예요.',
       ]) +
       H('조작') + UL(['내 말을 누르면 갈 수 있는 곳에 점이 표시돼요. 점을 누르면 이동해요.', '<b>무르기</b>: 한 수 되돌리기 · <b>힌트</b>: 추천 수 표시 · <b>기권</b>: 대국 포기']) +
       TIP('처음에는 가운데 폰을 움직이고, 나이트와 비숍을 빨리 꺼내고, <b>캐슬링</b>으로 킹을 안전하게 하세요. 말을 공짜로 주지 않게 조심!'),
@@ -59,8 +61,10 @@
         '<b>장군</b>: 궁이 공격받는 상태. 반드시 피하거나 막아야 해요.',
         '궁도 상대 말을 잡을 수 있지만, <b>잡은 자리가 다른 상대 말의 공격을 받는 곳이면</b> 잡을 수 없어요(스스로 장군을 받는 수는 금지). 궁은 궁성 밖으로 나갈 수 없어요.',
         '<b>한수쉼</b>: 장군이 아닐 때는 한 번 쉬어 갈 수 있어요.',
-        '<b>빅장</b>: 두 궁이 사이에 아무것도 없이 마주 보는 것. 상대가 피하지 않으면 <b>점수로 승부</b>를 내요.',
-        '<b>점수</b>: 차 13 · 포 7 · 마 5 · 상 3 · 사 3 · 졸 2점. 한(후수)은 1.5점 덤을 받아요. 200수가 되거나 같은 모양이 3번 나와도 점수로 판정해요.',
+        '<b>빅장</b>: 두 궁이 사이에 아무것도 없이 마주 보는 것. <b>기물을 하나라도 잡은 뒤</b>에만 성립하고, 상대가 피하지 않으면 <b>점수로 승부</b>를 내요.',
+        '<b>점수</b>: 차 13 · 포 7 · 마 5 · 상 3 · 사 3 · 졸 2점 (합계 72점). 한(후수)은 1.5점 덤을 받아요. 양쪽이 연속으로 한수쉼을 해도 점수로 판정해요.',
+        '<b>반복 금지</b>: 같은 수(모양)는 3번까지만 허용돼요. 4번째 반복은 반칙이라 둘 수 없어요.',
+        '이 앱에서는 대국이 너무 길어지지 않게 200수가 되면 점수로 판정해요.',
         '<b>상차림</b>: 시작할 때 마·상의 자리를 4가지로 고를 수 있어요(새 대국 설정).',
       ]) +
       H('조작') + UL(['내 말을 누르면 갈 수 있는 곳이 표시돼요. 그곳을 누르면 이동해요.', '<b>한수쉼</b>·<b>무르기</b>·<b>힌트</b>·<b>기권</b> 버튼을 쓸 수 있어요.']) +
@@ -117,12 +121,12 @@
     'guide.chess': GOAL('Attack the enemy <b>king ♚</b> so it cannot escape — <b>checkmate</b> — to win.') +
       H('How pieces move') + UL(['<b>King ♚</b>: one square any direction.', '<b>Queen ♛</b>: any distance across, down or diagonally.', '<b>Rook ♜</b>: any distance across or down.', '<b>Bishop ♝</b>: any distance diagonally.', '<b>Knight ♞</b>: an L-shape (two + one). The only piece that <b>jumps</b>.', '<b>Pawn ♟</b>: one square forward (two on its first move); captures <b>diagonally forward</b>.']) +
       H('Special rules') + UL(['<b>Check</b>: your king is attacked — you must get out of it.', '<b>Castling</b>: if king and rook haven’t moved and the path is clear, the king moves two squares toward the rook and the rook jumps over.', '<b>En passant</b>: a pawn that just moved two squares past yours can be captured diagonally on the next move.', '<b>Promotion</b>: a pawn reaching the last rank becomes a queen, rook, bishop or knight.']) +
-      H('Draws') + UL(['<b>Stalemate</b>: no legal move but not in check.', '50 moves without capture or pawn move, threefold repetition, or not enough pieces to mate.']) +
+      H('Draws') + UL(['<b>Stalemate</b>: no legal move but not in check.', 'Neither side has enough pieces to mate.', 'After a <b>threefold repetition</b> or <b>50 moves</b> without capture or pawn move, a player may press <b>[Draw]</b> to claim a draw (FIDE).', '<b>Fivefold repetition</b> or the <b>75-move rule</b> ends the game in a draw automatically.']) +
       H('Controls') + UL(['Tap your piece to see dots where it can go, then tap a dot.', '<b>Undo</b> · <b>Hint</b> · <b>Resign</b>']) +
       TIP('Move a center pawn, develop knights and bishops early, and <b>castle</b> to keep your king safe.'),
     'guide.janggi': GOAL('Trap the enemy <b>general</b> so it cannot escape (checkmate) to win. <b>Cho (blue)</b> moves first.') +
       H('How pieces move') + UL(['<b>General</b> & <b>Guards 士</b>: one step along the lines, only inside the <b>palace</b> (the 9 points with diagonals).', '<b>Chariot 車</b>: any distance across or down. The strongest piece.', '<b>Cannon 包</b>: must <b>jump over exactly one piece</b>. Cannons can never jump or capture cannons.', '<b>Horse 馬</b>: one step straight, then one diagonal. Blocked if the first point is occupied.', '<b>Elephant 象</b>: one step straight, then two diagonal. Blocked by any piece on its path.', '<b>Soldier 卒/兵</b>: one step forward or sideways, never back. Diagonal forward inside the enemy palace.', 'Inside a palace, chariots, cannons and soldiers can also follow the diagonals.']) +
-      H('Special rules') + UL(['<b>Janggun</b> (check): your general is attacked — escape or block.', 'The general can capture, but not a piece that is protected (you may not move into check), and never outside the palace.', '<b>Pass</b>: allowed when you are not in check.', '<b>Bikjang</b>: generals facing each other with nothing between. If not broken, the game is decided on <b>points</b>.', '<b>Points</b>: chariot 13 · cannon 7 · horse 5 · elephant 3 · guard 3 · soldier 2, Han +1.5. Also used after 200 moves or threefold repetition.', '<b>Setup</b>: choose one of 4 horse/elephant arrangements.']) +
+      H('Special rules') + UL(['<b>Janggun</b> (check): your general is attacked — escape or block.', 'The general can capture, but not a piece that is protected (you may not move into check), and never outside the palace.', '<b>Pass</b>: allowed when you are not in check.', '<b>Bikjang</b>: generals facing each other with nothing between. Valid only <b>after a capture</b>; if not broken, the game is decided on <b>points</b>.', '<b>Points</b>: chariot 13 · cannon 7 · horse 5 · elephant 3 · guard 3 · soldier 2 (72 total), Han +1.5. Two passes in a row are also decided on points.', '<b>No repetition</b>: the same position may occur 3 times; a 4th repetition is a foul and not allowed.', 'In this app, a game reaching 200 moves is decided on points.', '<b>Setup</b>: choose one of 4 horse/elephant arrangements.']) +
       TIP('Don’t give away your chariots. Cannons need a piece to jump over — give them a “bridge”.'),
     'guide.baduk': GOAL('Win by having more <b>territory</b> (empty points you surround) plus <b>captured stones</b>. Black plays first; White gets <b>6.5 komi</b>.') +
       H('How to play') + UL(['Take turns placing a stone on an <b>intersection</b>. Stones never move.', 'Empty points next to a group are its <b>liberties</b>. With one left it is in <b>atari</b>.', 'Fill all of a group’s liberties to <b>capture</b> it.']) +

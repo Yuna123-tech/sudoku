@@ -45,7 +45,7 @@
       for (const c of [0, 2, 4, 6, 8]) b[idx(pr, c)] = s + 'P';
     };
     back('c', setupCho); back('h', setupHan);
-    const st = { b, turn: 'c', ply: 0, keys: [], facingBefore: false };
+    const st = { b, turn: 'c', ply: 0, keys: [], facingBefore: false, passStreak: 0 };
     st.keys.push(key(st));
     return st;
   }
@@ -186,8 +186,9 @@
   }
 
   function make(st, m) {
-    const u = { m, captured: null, facingBefore: st.facingBefore };
+    const u = { m, captured: null, facingBefore: st.facingBefore, passStreak: st.passStreak };
     st.facingBefore = facing(st);
+    st.passStreak = m.pass ? st.passStreak + 1 : 0;
     if (!m.pass) { u.captured = st.b[m.to]; st.b[m.to] = st.b[m.from]; st.b[m.from] = null; }
     st.turn = enemy(st.turn);
     st.ply++;
@@ -199,6 +200,7 @@
     st.ply--;
     if (!m.pass) { st.b[m.from] = st.b[m.to]; st.b[m.to] = u.captured; }
     st.facingBefore = u.facingBefore;
+    st.passStreak = u.passStreak;
   }
 
   function legalMoves(st, capturesOnly) {
@@ -213,11 +215,20 @@
   // 한수쉼: 장군을 받지 않았을 때만 가능
   const canPass = (st) => !inCheck(st);
 
-  function play(st, mv) {
+  // 같은 수(같은 모양)를 4번째 반복하게 되는 수는 반칙패이므로 둘 수 없게 막음 (3회까지 허용)
+  function repeatsTooMuch(st, m) {
+    const u = make(st, m);
+    const k = key(st);
+    unmake(st, u);
+    return st.keys.filter((x) => x === k).length >= 3;
+  }
+
+  function play(st, mv, opts) {
     let m;
     if (mv.pass) { if (!canPass(st)) return null; m = { pass: true }; }
     else m = legalMoves(st).find((x) => x.from === mv.from && x.to === mv.to);
     if (!m) return null;
+    if (!(opts && opts.replay) && repeatsTooMuch(st, m)) return null;
     make(st, m);
     st.keys.push(key(st));
     return m;
@@ -233,14 +244,16 @@
     return { winner: p.c > p.h ? 'c' : 'h', reason, points: p };
   }
 
+  const pieceCount = (st) => st.b.reduce((n, q) => n + (q ? 1 : 0), 0);
+
   /* 결과: null(진행 중) 또는 {winner:'c'|'h', reason, points?} */
   function status(st) {
     if (inCheck(st) && !legalMoves(st).length) return { winner: enemy(st.turn), reason: 'checkmate' };
-    // 빅장을 받고도 피하지 않으면 점수로 판정
-    if (st.ply > 0 && st.facingBefore && facing(st)) return byPoints(st, 'bikjang');
+    // 빅장: 기물을 하나라도 잡은 뒤에 성립. 부른 뒤 상대가 피하지 않으면 남은 기물 점수로 판정
+    if (st.ply > 0 && st.facingBefore && facing(st) && pieceCount(st) < 32) return byPoints(st, 'bikjang');
+    // 양쪽이 연속으로 한수쉼하면 더 진행할 수 없으므로 점수로 판정
+    if (st.passStreak >= 2) return byPoints(st, 'bothPass');
     if (st.ply >= MOVE_LIMIT) return byPoints(st, 'limit');
-    const k = st.keys[st.keys.length - 1];
-    if (st.keys.filter((x) => x === k).length >= 3) return byPoints(st, 'repetition');
     return null;
   }
 
@@ -265,6 +278,7 @@
   const MATE = 100000;
   function search(st, opts) {
     const deadline = Date.now() + (opts.timeMs || 1000);
+    const noise = Math.max(opts.noise || 0, st.ply < 12 ? 30 : 0); // 초반 다양성
     let stop = false, nodes = 0;
     const order = (ms) => ms.sort((a, b) =>
       (b.captured ? VAL[b.captured[1]] * 10 - VAL[b.piece[1]] : 0) - (a.captured ? VAL[a.captured[1]] * 10 - VAL[a.piece[1]] : 0));
@@ -311,7 +325,7 @@
       }
       return best;
     }
-    const rootMoves = order(legalMoves(st));
+    const rootMoves = order(legalMoves(st).filter((m) => !repeatsTooMuch(st, m)));
     if (!rootMoves.length) return canPass(st) ? { pass: true } : null;
     let scored = rootMoves.map((m) => ({ m, s: 0 }));
     for (let d = 1; d <= (opts.depth || 3); d++) {
@@ -319,7 +333,7 @@
       let alpha = -Infinity;
       for (const { m } of scored) {
         const u = make(st, m);
-        const sc = -negamax(d - 1, -Infinity, -alpha + (opts.noise || 0), 1);
+        const sc = -negamax(d - 1, -Infinity, -alpha + noise, 1);
         unmake(st, u);
         if (stop) break;
         cur.push({ m, s: sc });
@@ -332,7 +346,7 @@
       scored = cur.map((x, i) => ({ ...x, i })).sort((a, b) => b.s - a.s || a.i - b.i);
       if (Math.abs(scored[0].s) > MATE - 1000) break;
     }
-    const top = scored[0].s, noise = opts.noise || 0;
+    const top = scored[0].s;
     if (!noise || top > MATE - 1000) return scored[0].m;
     const pool = scored.filter((x) => x.s > top - noise);
     return pool[Math.floor(Math.random() * pool.length)].m;
@@ -343,11 +357,11 @@
     easy: { depth: 2, timeMs: 600, noise: 150 },
     medium: { depth: 3, timeMs: 1500, noise: 40 },
     hard: { depth: 4, timeMs: 3000, noise: 0 },
-    expert: { depth: 5, timeMs: 5000, noise: 0 },
+    expert: { depth: 6, timeMs: 6500, noise: 0 },
   };
   const bestMove = (st, level) => search(st, LEVELS[level] || LEVELS.medium);
 
-  const api = { COLS, ROWS, SETUPS, SCORE, HAN_BONUS, create, legalMoves, pseudoMoves, canPass, play, make, unmake, inCheck, facing, status, points, bestMove, idx, inPalace, key };
+  const api = { LEVELS, COLS, ROWS, SETUPS, SCORE, HAN_BONUS, create, legalMoves, pseudoMoves, repeatsTooMuch, canPass, play, make, unmake, inCheck, facing, status, points, bestMove, idx, inPalace, key };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.JanggiEngine = api;
 })(typeof self !== 'undefined' ? self : this);
