@@ -243,7 +243,14 @@
   /* ---------- 수 두기 ---------- */
   function commit(mv) {
     const st = G.st;
+    // 효과음: 잡는 수인지 미리 확인
+    const took = (G.id === 'chess' || G.id === 'janggi') && mv && !mv.pass ? !!st.b[mv.to] : false;
+    const capsBefore = G.id === 'baduk' ? st.captures[1] + st.captures[2] : 0;
     if (!G.def.apply(st, mv)) { toast(t('bg.illegal')); return false; }
+    if (window.Sfx) {
+      if (G.id === 'chess' || G.id === 'janggi') { if (!(mv && mv.pass)) window.Sfx.play(took ? 'capture' : 'piece'); }
+      else if (!(G.id === 'baduk' && mv === -1)) window.Sfx.play(G.id === 'baduk' && st.captures[1] + st.captures[2] > capsBefore ? 'capture' : 'stone');
+    }
     G.moves.push(mv);
     G.sel = -1; G.targets = []; G.hint = null; G.ghost = null;
     if (mv && mv.pass) toast(t('bg.passed', { side: sideName(G.id, G.def.turn(st) === G.def.sides[0] ? G.def.sides[1] : G.def.sides[0]) }));
@@ -262,6 +269,10 @@
 
   function finish(winner, reason, extra) {
     G.over = { winner, reason, extra: extra || null };
+    if (window.Sfx && !G.pastReview) {
+      const snd = winner == null ? 'draw' : G.opts.mode !== 'ai' || winner === G.opts.mySide ? 'win' : 'lose';
+      setTimeout(() => window.Sfx.play(snd), 350);
+    }
     G.thinking = false;
     const rec = data.records[G.id] = data.records[G.id] || {};
     let result;

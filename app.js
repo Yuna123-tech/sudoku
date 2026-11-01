@@ -17,12 +17,14 @@
   const settings = Object.assign({
     variant: 'classic', difficulty: 'medium', theme: 'auto', lastKey: null,
     lang: (navigator.language || '').toLowerCase().startsWith('ko') ? 'ko' : 'en',
-    mistakeLimit: true, showMistakes: true, highlightSame: true, highlightPeers: true, autoClean: true,
+    sound: true, mistakeLimit: true, showMistakes: true, highlightSame: true, highlightPeers: true, autoClean: true,
   }, store.get(KEYS.settings, {}));
   let saves = store.get(KEYS.saves, {});
   let records = Object.assign({ completed: [], best: {}, started: {}, daily: {} }, store.get(KEYS.records, {}));
 
   const saveSettings = () => store.set(KEYS.settings, settings);
+  const sfx = (n) => window.Sfx && window.Sfx.play(n);
+  if (window.Sfx) window.Sfx.enabled = settings.sound !== false;
   const saveRecords = () => store.set(KEYS.records, records);
   function persist() {
     if (!game || game.won) return;
@@ -326,16 +328,18 @@
     if ((notesMode || forceNotes) && !game.values[i]) {
       pushHistory();
       game.notes[i] ^= 1 << (d - 1);
+      sfx('note');
     } else {
       pushHistory();
       if (game.values[i] === d) {
         game.values[i] = 0;
+        sfx('erase');
       } else {
         game.values[i] = d;
         game.notes[i] = 0;
         popCell(i);
         clearPeerNotes(i, d);
-        if (d !== game.puzzle.solution[i]) game.mistakes++;
+        if (d !== game.puzzle.solution[i]) { game.mistakes++; sfx(settings.showMistakes ? 'wrong' : 'tap'); } else sfx('tap');
       }
     }
     if (settings.mistakeLimit && game.mistakes >= MAX_MISTAKES) return gameOver();
@@ -345,6 +349,7 @@
   /* 실수 제한 초과: 판 종료 (저장해 두어 새로고침해도 유지) */
   function gameOver() {
     game.over = true;
+    setTimeout(() => sfx('lose'), 300);
     records.failed = (records.failed || 0) + 1;
     saveRecords();
     update();
@@ -384,6 +389,7 @@
     pushHistory();
     game.values[sel] = 0;
     game.notes[sel] = 0;
+    sfx('erase');
     afterMove();
   }
 
@@ -462,6 +468,7 @@
   }
 
   function win() {
+    setTimeout(() => sfx('win'), 150);
     game.won = true;
     const p = game.puzzle;
     const ck = comboKey(p.variant, p.difficulty);
@@ -650,7 +657,7 @@
       <select id="set-lang" class="lang-select">${Object.keys(I18N).map((l) => `<option value="${l}"${l === settings.lang ? ' selected' : ''}>${I18N[l].langName}</option>`).join('')}</select></label>`;
     const themeRow = `<label class="setting"><span>${t('set.theme')}<small>${t('set.themeSub')}</small></span>
       <select id="set-theme" class="lang-select">${['auto', 'light', 'dark'].map((x) => `<option value="${x}"${x === settings.theme ? ' selected' : ''}>${t(`theme.${x}`)}</option>`).join('')}</select></label>`;
-    openDialog(t('settings'), langRow + themeRow + ['mistakeLimit', 'showMistakes', 'highlightSame', 'highlightPeers', 'autoClean'].map(opt).join(''));
+    openDialog(t('settings'), langRow + themeRow + ['sound', 'mistakeLimit', 'showMistakes', 'highlightSame', 'highlightPeers', 'autoClean'].map(opt).join(''));
   }
 
   function exportData() {
@@ -777,6 +784,7 @@
     if (!k) return;
     settings[k] = e.target.checked;
     saveSettings();
+    if (k === 'sound' && window.Sfx) { window.Sfx.enabled = settings.sound; sfx('tap'); }
     update();
   });
   $('import-file').addEventListener('change', (e) => {
