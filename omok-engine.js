@@ -208,7 +208,9 @@
     // 바로 이기는 수, 바로 막아야 하는 수는 탐색 없이
     for (const x of top) { b[x.p] = me; const w = fiveAt(st, b, x.p, me); b[x.p] = 0; if (w) return x.p; }
     const opp = other(me);
-    for (const x of top) {
+    // 낮은 단계는 가끔 상대의 4(다음에 5목)를 못 보고 놓침 (miss 확률)
+    const sloppy = opts.miss && Math.random() < opts.miss;
+    if (!sloppy) for (const x of top) {
       if (st.rule === 'renju' && opp === BLACK && forbiddenReason(b, x.p)) continue;
       b[x.p] = opp; const w = fiveAt(st, b, x.p, opp); b[x.p] = 0;
       if (w) return x.p;
@@ -258,6 +260,11 @@
       }
     }
     if (opts.depth <= 1) {
+      // wander: 그 확률로 돌 근처 아무 데나 둠 (초보처럼 계획 없이)
+      if (opts.wander && Math.random() < opts.wander) {
+        const near = top.filter((x) => candidates(b, 1).includes(x.p));
+        if (near.length) return near[Math.floor(Math.random() * near.length)].p;
+      }
       const pool = top.slice(0, opts.pick || 1);
       return pool[Math.floor(Math.random() * pool.length)].p;
     }
@@ -320,8 +327,9 @@
   }
 
   const LEVELS = {
-    beginner: { depth: 1, pick: 6, defense: 0.3, timeMs: 300 },            // 대충 보고 상위 6수 중 하나
-    easy: { depth: 1, pick: 2, defense: 1, timeMs: 400 },                  // 공격·수비를 보고 상위 2수 중 하나
+    // miss: 그 확률로 상대의 4(바로 5목이 되는 자리)를 못 보고 놓침
+    beginner: { depth: 1, pick: 8, defense: 0.2, timeMs: 300, miss: 0.75, wander: 0.5 }, // 절반은 계획 없이 두고, 상대의 4도 자주 놓침
+    easy: { depth: 1, pick: 4, defense: 0.5, timeMs: 400, miss: 0.5, wander: 0.3 },     // 공격·수비를 보고 상위 4수 중 하나, 상대의 4를 가끔 놓침
     medium: { depth: 2, width: 8, defense: 1, timeMs: 1500, blunder: 0.25 }, // 상대의 다음 수까지 봄, 가끔 실수
     hard: { depth: 2, width: 10, defense: 1, timeMs: 3000, vcf: 6, blunder: 0.1 }, // + 짧은 연속 4(VCF) 공격·수비, 드물게 실수
     expert: { depth: 4, width: 12, defense: 1, timeMs: 6000, vcf: 16 },    // + 긴 VCF, 4수 앞까지 읽기

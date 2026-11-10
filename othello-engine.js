@@ -91,6 +91,14 @@
   }
 
   function search(st, opts) {
+    // 사람 같은 실수: 가장 많이 뒤집는 수에 끌리는 초보의 수 (모서리·변 생각 없이)
+    if (opts.blunder && Math.random() < opts.blunder) {
+      const ms = movesFor(st.b, st.turn);
+      if (ms.length) {
+        const sc = ms.map((p) => ({ p, s: flips(st.b, p, st.turn).length + Math.random() * 2 }));
+        return sc.sort((x, y) => y.s - x.s)[0].p;
+      }
+    }
     const b = Int8Array.from(st.b), me = st.turn;
     const deadline = Date.now() + (opts.timeMs || 1000);
     let stop = false, nodes = 0;
@@ -145,9 +153,10 @@
   }
 
   const LEVELS = {
-    beginner: { depth: 1, noise: 60, timeMs: 300 },
-    easy: { depth: 2, noise: 20, timeMs: 500 },
-    medium: { depth: 4, timeMs: 1200, exact: 8 },
+    // blunder: 그 확률로 '많이 뒤집는 수'만 보는 초보의 수를 둠
+    beginner: { depth: 1, noise: 150, timeMs: 300, blunder: 0.9 },
+    easy: { depth: 1, noise: 60, timeMs: 500, blunder: 0.5 },
+    medium: { depth: 4, timeMs: 1200, exact: 8, blunder: 0.05 },
     hard: { depth: 6, timeMs: 2500, exact: 12 },
     expert: { depth: 10, timeMs: 6000, exact: 16 }, // 끝 16수는 끝까지 완전히 읽음
   };

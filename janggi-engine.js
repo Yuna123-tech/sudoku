@@ -276,7 +276,21 @@
   }
 
   const MATE = 100000;
+
+  // 사람 같은 실수: 한 수 앞만 보고(상대가 되잡는 것은 생각 안 함) 그럴듯한 수 중 하나를 고름
+  function careless(st, spread) {
+    const ms = legalMoves(st);
+    if (!ms.length) return null;
+    const sc = ms.map((m) => { const u = make(st, m); const s = -evaluate(st); unmake(st, u); return { m, s }; });
+    const top = Math.max(...sc.map((x) => x.s));
+    const pool = sc.filter((x) => x.s >= top - spread);
+    return pool[Math.floor(Math.random() * pool.length)].m;
+  }
   function search(st, opts) {
+    if (opts.blunder && Math.random() < opts.blunder) {
+      const m = careless(st, opts.spread || 150);
+      if (m && !repeatsTooMuch(st, m)) return m;
+    }
     const deadline = Date.now() + (opts.timeMs || 1000);
     const noise = Math.max(opts.noise || 0, st.ply < 12 ? 30 : 0); // 초반 다양성
     let stop = false, nodes = 0;
@@ -368,9 +382,10 @@
   }
 
   const LEVELS = {
-    beginner: { depth: 1, timeMs: 300, noise: 400 },
-    easy: { depth: 2, timeMs: 600, noise: 150 },
-    medium: { depth: 3, timeMs: 1500, noise: 40 },
+    // blunder: 그 확률로 '한 수 앞만 보는' 실수를 함 (초보 사람처럼 말을 공짜로 내주기도 함)
+    beginner: { depth: 1, timeMs: 300, noise: 400, blunder: 0.45, spread: 300 },
+    easy: { depth: 2, timeMs: 600, noise: 200, blunder: 0.7, spread: 250 },
+    medium: { depth: 3, timeMs: 1500, noise: 40, blunder: 0.08, spread: 80 },
     hard: { depth: 4, timeMs: 3000, noise: 0 },
     expert: { depth: 6, timeMs: 6500, noise: 0 },
   };

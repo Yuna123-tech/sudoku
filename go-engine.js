@@ -299,6 +299,11 @@
     const book = openingMove(st);
     if (book >= 0 && isLegal(st, book)) return { move: book, winrate: 0.5, own: new Float64Array(total), playouts: 0 };
     let rootMoves = candidateMoves(st.b, N, st.turn, st.ko);
+    // 낮은 단계: 그 확률로 아무 데나 둠 (자기 집 눈은 메우지 않음) — 초보처럼 실수
+    if (opts.blunder && Math.random() < opts.blunder) {
+      const ok = rootMoves.filter((m) => isLegal(st, m));
+      if (ok.length) return { move: ok[Math.floor(Math.random() * ok.length)], winrate: 0.5, own: new Float64Array(total), playouts: 0 };
+    }
     const rootUrgent = urgentPoints(st.b, N);
     const scoreOf = new Map(rootMoves.map((m) => [m, heuristic(st.b, N, m, st.turn, st.ko, st.moves, rootUrgent)]));
     // 입문: 바둑 상식 점수 상위 몇 수 중에서 고름 (탐색 없이)
@@ -466,8 +471,8 @@
   }
 
   const LEVELS = {
-    beginner: { heuristicOnly: true, pick: 6 },  // 바둑 상식 상위 6수 중 하나 (탐색 없음)
-    easy: { playouts: 200, timeMs: 1000, pickTop: 3 },  // 적게 보고, 상위 3수 중 하나
+    beginner: { heuristicOnly: true, pick: 8, blunder: 0.55 },  // 절반은 아무 데나, 나머지는 바둑 상식 상위 8수 중 하나
+    easy: { playouts: 150, timeMs: 1000, pickTop: 5, blunder: 0.45 },  // 적게 보고 상위 5수 중 하나, 자주 아무 데나
     medium: { playouts: 1500, timeMs: 2500 },
     hard: { playouts: 4000, timeMs: 3500 },
     expert: { playouts: 20000, timeMs: 9000 }, // 어려움보다 2.5배 이상 더 많이 읽음
