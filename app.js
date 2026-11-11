@@ -17,7 +17,7 @@
   const settings = Object.assign({
     variant: 'classic', difficulty: 'medium', theme: 'auto', lastKey: null,
     lang: (navigator.language || '').toLowerCase().startsWith('ko') ? 'ko' : 'en',
-    sound: true, mistakeLimit: true, showMistakes: true, highlightSame: true, highlightPeers: true, autoClean: true,
+    sound: true, simpleColors: true, mistakeLimit: true, showMistakes: true, highlightSame: true, highlightPeers: true, autoClean: true,
   }, store.get(KEYS.settings, {}));
   let saves = store.get(KEYS.saves, {});
   let records = Object.assign({ completed: [], best: {}, started: {}, daily: {} }, store.get(KEYS.records, {}));
@@ -235,7 +235,8 @@
       if (i === sel) cls += ' selected';
       else if (settings.highlightSame && selVal && v === selVal) cls += ' same';
       else if (peerSet.has(i)) cls += ' peer';
-      if (v && ctx.peers[i].some((p) => values[p] === v)) cls += ' conflict';
+      // 겹치는 숫자 표시: 내가 넣은 숫자만 (처음부터 있던 숫자, 오답 표시가 켜져 있을 때 맞는 숫자는 빨갛게 하지 않음)
+      if (v && !puzzle.givens[i] && !(settings.showMistakes && v === puzzle.solution[i]) && ctx.peers[i].some((p) => values[p] === v)) cls += ' conflict';
       if (v && settings.showMistakes && v !== puzzle.solution[i]) cls += ' wrong';
       el.className = cls;
       val.textContent = v || '';
@@ -271,7 +272,7 @@
     const v = game ? game.puzzle.variant : settings.variant;
     const d = game ? game.puzzle.difficulty : settings.difficulty;
     if (!document.body.dataset.game || document.body.dataset.game === 'sudoku') document.documentElement.dataset.variant = v;
-    $('st-variant').textContent = vName(v);
+    $('st-variant').textContent = vShort(v);
     $('st-diff').textContent = dName(d);
     $('st-daily').classList.toggle('hidden', !(game && game.daily));
     $('rule').textContent = vDesc(v);
@@ -657,7 +658,7 @@
       <select id="set-lang" class="lang-select">${Object.keys(I18N).map((l) => `<option value="${l}"${l === settings.lang ? ' selected' : ''}>${I18N[l].langName}</option>`).join('')}</select></label>`;
     const themeRow = `<label class="setting"><span>${t('set.theme')}<small>${t('set.themeSub')}</small></span>
       <select id="set-theme" class="lang-select">${['auto', 'light', 'dark'].map((x) => `<option value="${x}"${x === settings.theme ? ' selected' : ''}>${t(`theme.${x}`)}</option>`).join('')}</select></label>`;
-    openDialog(t('settings'), langRow + themeRow + ['sound', 'mistakeLimit', 'showMistakes', 'highlightSame', 'highlightPeers', 'autoClean'].map(opt).join(''));
+    openDialog(t('settings'), langRow + themeRow + ['simpleColors', 'sound', 'mistakeLimit', 'showMistakes', 'highlightSame', 'highlightPeers', 'autoClean'].map(opt).join(''));
   }
 
   function exportData() {
@@ -703,6 +704,9 @@
 
   /* ---------- 테마 ---------- */
   function applyTheme() {
+    // 스도쿠 판을 검정·흰색·빨강만으로 (기본 켬)
+    if (settings.simpleColors !== false) document.documentElement.dataset.simple = '1';
+    else delete document.documentElement.dataset.simple;
     if (settings.theme === 'auto') document.documentElement.removeAttribute('data-theme');
     else document.documentElement.dataset.theme = settings.theme;
   }
@@ -784,6 +788,7 @@
     if (!k) return;
     settings[k] = e.target.checked;
     saveSettings();
+    if (k === 'simpleColors') applyTheme();
     if (k === 'sound' && window.Sfx) { window.Sfx.enabled = settings.sound; sfx('tap'); }
     update();
   });

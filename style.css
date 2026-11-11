@@ -641,3 +641,30 @@ body[data-game="sudoku"] #bg-play, body[data-game="sudoku"] #bg-side, body:not([
   #sd-play .tool .ti .ico { width: 19px; height: 19px; }
 }
 .tool em.zero { background: var(--error-bg); color: var(--error-text); }
+
+/* ---------- 스도쿠 '검정·흰색·빨강' 모드 (설정 > 간단한 색, 기본 켬) ----------
+   흰 바탕 + 검정 숫자, 틀린 숫자만 빨강. 강조색은 회색(검정의 옅은 색)으로만 표시 */
+html[data-simple] body[data-game="sudoku"] {
+  --bg: #ffffff; --bg-2: #f2f2f2; --surface: #ffffff; --surface-2: #f4f4f4; --border: #d6d6d6;
+  --text: #000000; --muted: #555555; --accent: #000000; --on-accent: #ffffff;
+  --cell: #ffffff; --given: #000000; --hint: #000000; --user: #000000;
+  --line-thin: #b8b8b8; --line-thick: #000000; --mark: #e4e4e4; --cage: #000000;
+  --error-text: #d40000; --error-bg: #ffe3e3;
+  --peer: #f7f7f7; --same: #e0e0e0; --selected: #c4c4c4; --shade: #e4e4e4;
+  --accent-soft: #eeeeee; --accent-strong: #000000;
+  --r0: #ffffff; --r1: #ffffff; --r2: #ffffff; --r3: #ffffff; --r4: #ffffff;
+  --r5: #ffffff; --r6: #ffffff; --r7: #ffffff; --r8: #ffffff;
+  --grain-opacity: 0;
+  color-scheme: light;
+  background: #ffffff; color: #000000;
+}
+html[data-simple] body[data-game="sudoku"] .cell.hinted .val { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 8%; }
+html[data-simple] body[data-game="sudoku"] .num b { color: #000000; }
+html[data-simple] body[data-game="sudoku"] .tool.on .ti { background: #000000; color: #ffffff; }
+
+/* 처음부터 있던 숫자 칸은 빨갛게 칠하지 않음 (틀린 건 내가 넣은 숫자만 빨강) */
+.grid .cell.conflict.given { background: var(--cell); }
+.grid .cell.shade.conflict.given { background: var(--shade); }
+.grid .cell.conflict.given.peer { background: var(--peer); }
+.grid .cell.conflict.given.same { background: var(--same); }
+.grid .cell.conflict.given.selected { background: var(--selected); }

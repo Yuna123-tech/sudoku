@@ -48,7 +48,7 @@ window.I18N = {
     confirmReset: '모든 기록과 진행 중인 게임을 삭제할까요? 되돌릴 수 없어요.', resetDone: '기록을 초기화했어요',
 
     settings: '설정', 'set.lang': '언어 / Language', 'set.langSub': '화면에 표시할 언어',
-    'set.sound': '효과음', 'set.soundSub': '숫자를 넣거나 말·돌을 놓을 때 소리를 내요', 'set.mistakeLimit': '실수 {n}번 제한', 'set.mistakeLimitSub': '{n}번 틀리면 그 판이 끝나고 다시 시작',
+    'set.simpleColors': '스도쿠 간단한 색', 'set.simpleColorsSub': '스도쿠 판을 검정·흰색·빨강(틀린 숫자)만으로 보여 줘요. 눈이 편해요', 'set.sound': '효과음', 'set.soundSub': '숫자를 넣거나 말·돌을 놓을 때 소리를 내요', 'set.mistakeLimit': '실수 {n}번 제한', 'set.mistakeLimitSub': '{n}번 틀리면 그 판이 끝나고 다시 시작',
     'set.showMistakes': '오답 표시', 'set.showMistakesSub': '정답과 다른 숫자를 빨간색으로 표시',
     'set.highlightSame': '같은 숫자 강조', 'set.highlightSameSub': '선택한 칸과 같은 숫자를 강조',
     'set.highlightPeers': '관련 칸 강조', 'set.highlightPeersSub': '같은 행·열·영역의 칸을 강조',
@@ -110,7 +110,7 @@ window.I18N = {
     confirmReset: 'Delete all records and games in progress? This cannot be undone.', resetDone: 'Records reset',
 
     settings: 'Settings', 'set.lang': 'Language / 언어', 'set.langSub': 'Display language',
-    'set.sound': 'Sound effects', 'set.soundSub': 'Play a sound when you enter a number or move a piece', 'set.mistakeLimit': '{n}-mistake limit', 'set.mistakeLimitSub': 'The game ends after {n} mistakes',
+    'set.simpleColors': 'Simple sudoku colors', 'set.simpleColorsSub': 'Show the sudoku board in black, white and red (mistakes) only — easier on the eyes', 'set.sound': 'Sound effects', 'set.soundSub': 'Play a sound when you enter a number or move a piece', 'set.mistakeLimit': '{n}-mistake limit', 'set.mistakeLimitSub': 'The game ends after {n} mistakes',
     'set.showMistakes': 'Show mistakes', 'set.showMistakesSub': 'Show wrong numbers in red',
     'set.highlightSame': 'Highlight same numbers', 'set.highlightSameSub': 'Highlight numbers matching the selected cell',
     'set.highlightPeers': 'Highlight related cells', 'set.highlightPeersSub': 'Highlight the row, column and region of the selected cell',
